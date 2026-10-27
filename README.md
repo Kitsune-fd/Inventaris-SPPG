@@ -62,8 +62,8 @@ Pastikan komputer/server Anda telah terpasang:
 ### 1. Clone Repositori
 Buka terminal dan clone repositori ini ke komputer Anda:
 ```bash
-git clone https://github.com/Dafaumar0/Stok-bahan-baku-SPPG.git
-cd Stok-bahan-baku-SPPG
+git clone https://github.com/Kitsune-fd/Inventaris-SPPG.git
+cd Inventaris-SPPG
 ```
 
 ### 2. Pasang Dependensi PHP (Composer)
