@@ -1,4 +1,4 @@
-@extends('layouts_app')
+@extends('layouts.layouts_app')
 
 @section('title', 'Bahan Baku')
 
@@ -40,6 +40,14 @@
                         Cari
                     </button>
                 </div>
+
+                @if(request('search'))
+                    <div class="col-md-2">
+                        <a href="{{ route('bahan-baku.index') }}" class="btn btn-outline-secondary w-100">
+                            Reset
+                        </a>
+                    </div>
+                @endif
             </div>
         </form>
 
@@ -63,7 +71,7 @@
                 <tbody>
                     @forelse ($bahanBaku as $item)
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $bahanBaku->firstItem() ? ($bahanBaku->firstItem() + $loop->index) : $loop->iteration }}</td>
 
                             <td>
                                 <span class="fw-semibold">

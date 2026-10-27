@@ -472,24 +472,24 @@
             <div class="nav-section-label">Master Data</div>
 
             <li class="nav-item">
-                <a href="#menuMasterData" class="nav-link {{ Request::is('master/*') ? '' : 'collapsed' }}"
-                   data-bs-toggle="collapse" aria-expanded="{{ Request::is('master/*') ? 'true' : 'false' }}">
+                <a href="#menuMasterData" class="nav-link {{ Request::routeIs('bahan-baku.*', 'kategori.*', 'supplier.*', 'sekolah.*') ? '' : 'collapsed' }}"
+                   data-bs-toggle="collapse" aria-expanded="{{ Request::routeIs('bahan-baku.*', 'kategori.*', 'supplier.*', 'sekolah.*') ? 'true' : 'false' }}">
                     <i class="bi bi-boxes"></i>
                     <span>Master Data</span>
                     <i class="bi bi-chevron-right chev"></i>
                 </a>
-                <div class="collapse {{ Request::is('master/*') ? 'show' : '' }}" id="menuMasterData">
+                <div class="collapse {{ Request::routeIs('bahan-baku.*', 'kategori.*', 'supplier.*', 'sekolah.*') ? 'show' : '' }}" id="menuMasterData">
                     <ul class="sidebar-submenu">
-                        <li><a href="{{route('bahan-baku.index')}}" class="nav-link {{ Request::routeIs('master.bahan-baku.*') ? 'active' : '' }}">
+                        <li><a href="{{route('bahan-baku.index')}}" class="nav-link {{ Request::routeIs('bahan-baku.*') ? 'active' : '' }}">
                             <span>Data Bahan Baku</span>
                         </a></li>
-                        <li><a href="{{route('kategori.index')}}" class="nav-link {{ Request::routeIs('master.kategori.*') ? 'active' : '' }}">
+                        <li><a href="{{route('kategori.index')}}" class="nav-link {{ Request::routeIs('kategori.*') ? 'active' : '' }}">
                             <span>Kategori Bahan</span>
                         </a></li>
-                        <li><a href="{{route('supplier.index')}}" class="nav-link {{ Request::routeIs('master.supplier.*') ? 'active' : '' }}">
+                        <li><a href="{{route('supplier.index')}}" class="nav-link {{ Request::routeIs('supplier.*') ? 'active' : '' }}">
                             <span>Supplier</span>
                         </a></li>
-                        <li><a href="{{ route('sekolah.index') }}" class="nav-link {{ Request::routeIs('sekolah.*') ? 'active' : '' }}">
+                        <li><a href="{{route('sekolah.index')}}" class="nav-link {{ Request::routeIs('sekolah.*') ? 'active' : '' }}">
                             <span>Sekolah Penerima</span>
                         </a></li>
                     </ul>
@@ -500,13 +500,13 @@
             <div class="nav-section-label">Manajemen Stok</div>
 
             <li class="nav-item">
-                <a href="#menuStok" class="nav-link {{ Request::is('stok/*') ? '' : 'collapsed' }}"
-                   data-bs-toggle="collapse" aria-expanded="{{ Request::is('stok/*') ? 'true' : 'false' }}">
+                <a href="#menuStok" class="nav-link {{ Request::routeIs('bahan-masuk.*', 'penggunaan-bahan.*') ? '' : 'collapsed' }}"
+                   data-bs-toggle="collapse" aria-expanded="{{ Request::routeIs('bahan-masuk.*', 'penggunaan-bahan.*') ? 'true' : 'false' }}">
                     <i class="bi bi-archive"></i>
                     <span>Manajemen Stok</span>
                     <i class="bi bi-chevron-right chev"></i>
                 </a>
-                <div class="collapse {{ Request::is('stok/*') ? 'show' : '' }}" id="menuStok">
+                <div class="collapse {{ Request::routeIs('bahan-masuk.*', 'penggunaan-bahan.*') ? 'show' : '' }}" id="menuStok">
                     <ul class="sidebar-submenu">
                         <li><a href="{{ route('bahan-masuk.index') }}" class="nav-link {{ Request::routeIs('bahan-masuk.*') ? 'active' : '' }}">
                             <span>Bahan Masuk</span>
@@ -523,15 +523,15 @@
             <div class="nav-section-label">Laporan</div>
 
             <li class="nav-item">
-                <a href="#menuLaporan" class="nav-link {{ Request::is('laporan/*') ? '' : 'collapsed' }}"
-                   data-bs-toggle="collapse" aria-expanded="{{ Request::is('laporan/*') ? 'true' : 'false' }}">
+                <a href="#menuLaporan" class="nav-link {{ Request::routeIs('laporan.*') ? '' : 'collapsed' }}"
+                   data-bs-toggle="collapse" aria-expanded="{{ Request::routeIs('laporan.*') ? 'true' : 'false' }}">
                     <i class="bi bi-bar-chart-line"></i>
                     <span>Laporan</span>
                     <i class="bi bi-chevron-right chev"></i>
                 </a>
-                <div class="collapse {{ Request::is('laporan/*') ? 'show' : '' }}" id="menuLaporan">
+                <div class="collapse {{ Request::routeIs('laporan.*') ? 'show' : '' }}" id="menuLaporan">
                     <ul class="sidebar-submenu">
-                        <li><a href="{{ route('laporan.index') }}" class="nav-link {{ Request::routeIs('laporan') ? 'active' : '' }}">
+                        <li><a href="{{ route('laporan.index') }}" class="nav-link {{ Request::routeIs('laporan.*') ? 'active' : '' }}">
                             <span>Laporan Stok</span>
                         </a></li>
                         
@@ -563,7 +563,7 @@
             <div class="nav-section-label">Pengaturan</div>
 
             <li class="nav-item">
-                <form method="POST" action="" id="logoutForm">
+                <form method="POST" action="{{ route('logout') }}" id="logoutForm">
                     @csrf
                     <a href="#" class="nav-link text-danger" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
                         <i class="bi bi-box-arrow-right"></i>
@@ -666,6 +666,22 @@
 <main id="mainContent">
 
     <div class="content-area">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-3" role="alert">
+                <i class="bi bi-check-circle-fill fs-5 me-2"></i>
+                <div>{{ session('success') }}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
+                <div>{{ session('error') }}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         @yield('content')
     </div>
 

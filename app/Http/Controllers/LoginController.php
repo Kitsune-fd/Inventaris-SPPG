@@ -8,83 +8,54 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Show login form.
      */
     public function index()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('login');
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Handle authentication attempt.
      */
-   
-
     public function login(Request $request)
     {
-        // Validasi input
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.required' => 'Password wajib diisi.',
         ]);
 
-        // Ambil data email & password
-        $credentials = $request->only('email', 'password');
-
-        // Cek login
-        if (Auth::attempt($credentials)) {
-
-            // Regenerate session
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            // Redirect setelah login berhasil
-            return redirect()->route('dashboard')
-                ->with('success', 'Login berhasil');
+            return redirect()->intended(route('dashboard'))
+                ->with('success', 'Selamat datang kembali, ' . Auth::user()->name . '!');
         }
 
-        // Jika login gagal
         return back()->withErrors([
-            'email' => 'Email atau password salah'
-        ])->withInput();
+            'email' => 'Email atau password yang Anda masukkan salah.',
+        ])->onlyInput('email');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Log the user out of the application.
      */
-    public function store(Request $request)
+    public function logout(Request $request)
     {
-        //
-    }
+        Auth::logout();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('login')
+            ->with('success', 'Anda telah berhasil logout.');
     }
 }

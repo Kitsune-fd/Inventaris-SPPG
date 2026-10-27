@@ -3,44 +3,55 @@
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\BahanMasukController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LoginController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PenggunaanBahanController;
-use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SekolahPenerimaController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [LoginController::class, 'index']);
-Route::post('/', [LoginController::class, 'login'])->name('login');
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
-// Cukup tulis satu kali saja di sini
-Route::get('/admin', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/admin/bahan-baku', [BahanBakuController::class, 'index'])->name('bahan-baku.index');
-Route::get('/admin/bahan-baku/tambah', [BahanBakuController::class, 'create'])->name('bahan-baku.create');
-Route::post('/admin/bahan-baku/tambah', [BahanBakuController::class, 'store'])->name('bahan-baku.store');
-Route::get('/admin/bahan-baku/{bahanBaku}', [BahanBakuController::class, 'show'])->name('bahan-baku.show');
-Route::get('/admin/bahan-baku/{bahanBaku}/ubah', [BahanBakuController::class, 'edit'])->name('bahan-baku.edit');
-Route::put('/admin/bahan-baku/{bahanBaku}/ubah', [BahanBakuController::class, 'update'])->name('bahan-baku.update');
-Route::delete('/admin/bahan-baku/{bahanBaku}', [BahanBakuController::class, 'destroy'])->name('bahan-baku.destroy');
-Route::get('/admin/kategori', [KategoriController::class, 'index'])->name('kategori.index');
-Route::get('/admin/kategori/tambah', [KategoriController::class, 'create'])->name('kategori.create');
-Route::post('/admin/kategori/tambah', [KategoriController::class, 'store'])->name('kategori.store');
-Route::get('/admin/kategori/{Kategori}', [KategoriController::class, 'show'])->name('kategori.show');
-Route::get('/admin/kategori/{Kategori}/ubah', [KategoriController::class, 'edit'])->name('kategori.edit');
-Route::put('/admin/kategori/{Kategori}/ubah', [KategoriController::class, 'update'])->name('kategori.update');
-Route::delete('/admin/kategori/{Kategori}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
-Route::get('/admin/supplier', [SupplierController::class, 'index'])->name('supplier.index');
-Route::get('/admin/supplier/tambah', [SupplierController::class, 'create'])->name('supplier.create');
-Route::post('/admin/supplier/tambah', [SupplierController::class, 'store'])->name('supplier.store');
-Route::get('/admin/supplier/{supplier}', [SupplierController::class, 'show'])->name('supplier.show');
-Route::get('/admin/supplier/{supplier}/ubah', [SupplierController::class, 'edit'])->name('supplier.edit');
-Route::put('/admin/supplier/{supplier}/ubah', [SupplierController::class, 'update'])->name('supplier.update');
-Route::delete('/admin/kategori/{Kategori}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
+// Authentication Routes
+Route::middleware('guest')->group(function () {
+    Route::get('/', [LoginController::class, 'index'])->name('login');
+    Route::post('/', [LoginController::class, 'login'])->name('login.post');
+});
 
-Route::get('/admin/sekolah', [SekolahPenerimaController::class, 'index'])->name('sekolah.index');
-Route::get('/admin/bahan-masuk', [BahanMasukController::class, 'index'])->name('bahan-masuk.index');
-Route::get('/admin/penggunaan-bahan', [PenggunaanBahanController::class, 'index'])->name('penggunaan-bahan.index');
-Route::get('/admin/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-Route::get('/admin/user', [UserController::class, 'index'])->name('user.index');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Protected Admin Routes
+Route::prefix('admin')->middleware('auth')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Master Data Resources
+    Route::resource('bahan-baku', BahanBakuController::class)->parameters([
+        'bahan-baku' => 'bahanBaku'
+    ]);
+    Route::resource('kategori', KategoriController::class)->parameters([
+        'kategori' => 'kategori'
+    ]);
+    Route::resource('supplier', SupplierController::class)->parameters([
+        'supplier' => 'supplier'
+    ]);
+    Route::resource('sekolah', SekolahPenerimaController::class)->only(['index']);
+
+    // Manajemen Stok
+    Route::get('/bahan-masuk', [BahanMasukController::class, 'index'])->name('bahan-masuk.index');
+    Route::get('/penggunaan-bahan', [PenggunaanBahanController::class, 'index'])->name('penggunaan-bahan.index');
+
+    // Laporan & Manajemen Pengguna
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/user', [UserController::class, 'index'])->name('user.index');
+});

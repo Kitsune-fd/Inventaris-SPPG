@@ -1,4 +1,4 @@
-@extends('layouts_app')
+@extends('layouts.layouts_app')
 
 @section('title', 'Tambah Bahan Baku')
 

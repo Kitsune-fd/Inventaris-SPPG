@@ -1,4 +1,4 @@
-    @extends('layouts_app')
+@extends('layouts.layouts_app')
 
     @section('title', 'Dashboard')
 
@@ -372,9 +372,13 @@
             <div class="stat-card sc-green">
                 <div class="stat-icon si-green"><i class="bi bi-boxes"></i></div>
                 <div class="stat-body">
-                    <div class="stat-value">248</div>
+                    <div class="stat-value">{{ number_format($totalBahanBaku) }}</div>
                     <div class="stat-label">Total Bahan Baku</div>
-                    <span class="stat-badge up"><i class="bi bi-arrow-up-short"></i>+12 bulan ini</span>
+                    @if($bahanBakuBulanIni > 0)
+                        <span class="stat-badge up"><i class="bi bi-arrow-up-short"></i>+{{ $bahanBakuBulanIni }} baru bulan ini</span>
+                    @else
+                        <span class="stat-badge neu"><i class="bi bi-check2"></i>{{ $totalBahanTersedia }} item tersedia</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -383,9 +387,9 @@
             <div class="stat-card sc-orange">
                 <div class="stat-icon si-orange"><i class="bi bi-building"></i></div>
                 <div class="stat-body">
-                    <div class="stat-value">64</div>
+                    <div class="stat-value">{{ number_format($totalSekolah) }}</div>
                     <div class="stat-label">Total Sekolah</div>
-                    <span class="stat-badge neu"><i class="bi bi-dash"></i>Tidak berubah</span>
+                    <span class="stat-badge neu"><i class="bi bi-building-check"></i>{{ $totalSekolahAktif }} aktif terdaftar</span>
                 </div>
             </div>
         </div>
@@ -394,20 +398,24 @@
             <div class="stat-card sc-blue">
                 <div class="stat-icon si-blue"><i class="bi bi-fire"></i></div>
                 <div class="stat-body">
-                    <div class="stat-value">1.280</div>
-                    <div class="stat-label">Produksi Hari Ini</div>
-                    <span class="stat-badge up"><i class="bi bi-arrow-up-short"></i>+5% vs kemarin</span>
+                    <div class="stat-value">{{ number_format($totalPorsiTarget) }}</div>
+                    <div class="stat-label">Target Porsi Hari Ini</div>
+                    <span class="stat-badge up"><i class="bi bi-truck"></i>{{ $persenPorsiTerkirim }}% terkirim ({{ number_format($porsiTerkirim) }})</span>
                 </div>
             </div>
         </div>
 
         <div class="col-6 col-xl-3">
-            <div class="stat-card sc-purple">
-                <div class="stat-icon si-purple"><i class="bi bi-truck"></i></div>
+            <div class="stat-card {{ $totalBahanKritis > 0 ? 'sc-purple' : 'sc-green' }}">
+                <div class="stat-icon {{ $totalBahanKritis > 0 ? 'si-purple' : 'si-green' }}"><i class="bi bi-exclamation-triangle"></i></div>
                 <div class="stat-body">
-                    <div class="stat-value">47</div>
-                    <div class="stat-label">Distribusi Hari Ini</div>
-                    <span class="stat-badge down"><i class="bi bi-arrow-down-short"></i>-3 sekolah</span>
+                    <div class="stat-value" style="{{ $totalBahanKritis > 0 ? 'color:#dc2626' : '' }}">{{ number_format($totalBahanKritis) }}</div>
+                    <div class="stat-label">Bahan Kritis / Menipis</div>
+                    @if($totalBahanKritis > 0)
+                        <span class="stat-badge down"><i class="bi bi-exclamation-circle"></i>Perlu Restock</span>
+                    @else
+                        <span class="stat-badge up"><i class="bi bi-check-circle"></i>Semua Stok Aman</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -427,7 +435,7 @@
                         <i class="bi bi-exclamation-triangle-fill text-warning"></i>
                         Stok Bahan Hampir Habis
                     </div>
-                    <a href="" class="btn btn-sm"
+                    <a href="{{ route('bahan-baku.index') }}" class="btn btn-sm"
                     style="background:var(--sppg-primary-lt); color:var(--sppg-primary); font-size:.73rem; font-weight:600; border:none; border-radius:7px; padding:5px 12px;">
                         Lihat Semua <i class="bi bi-arrow-right ms-1"></i>
                     </a>
@@ -445,49 +453,43 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php
-                            $stokData = [
-                                ['Beras Medium', 'Karbohidrat', '120 Kg', '200 Kg', 'kritis', 12],
-                                ['Minyak Goreng', 'Lemak', '8 Liter', '25 Liter', 'kritis', 15],
-                                ['Telur Ayam', 'Protein', '45 Butir', '100 Butir', 'rendah', 32],
-                                ['Wortel Segar', 'Sayuran', '12 Kg', '30 Kg', 'rendah', 40],
-                                ['Tahu Putih', 'Protein', '38 Pcs', '60 Pcs', 'rendah', 55],
-                                ['Gula Pasir', 'Bumbu', '3 Kg', '10 Kg', 'kritis', 8],
-                                ['Tempe', 'Protein', '22 Pcs', '40 Pcs', 'rendah', 45],
-                            ];
-                            @endphp
-
-                            @foreach($stokData as $item)
+                            @forelse($stokHampirHabis as $item)
                             <tr>
                                 <td>
-                                    <div style="font-weight:600">{{ $item[0] }}</div>
+                                    <div style="font-weight:600">{{ $item->nama }}</div>
                                 </td>
                                 <td>
-                                    <span style="font-size:.7rem; color:var(--sppg-text-muted)">{{ $item[1] }}</span>
+                                    <span style="font-size:.7rem; color:var(--sppg-text-muted)">{{ $item->kategori }}</span>
                                 </td>
                                 <td>
-                                    <span style="font-weight:600; color:{{ $item[4] === 'kritis' ? '#b91c1c' : '#b45309' }}">
-                                        {{ $item[2] }}
+                                    <span style="font-weight:600; color:{{ $item->kondisi === 'kritis' ? '#b91c1c' : ($item->kondisi === 'rendah' ? '#b45309' : '#15803d') }}">
+                                        {{ $item->stok }}
                                     </span>
                                 </td>
-                                <td style="color:var(--sppg-text-muted)">{{ $item[3] }}</td>
+                                <td style="color:var(--sppg-text-muted)">{{ $item->min_stok }}</td>
                                 <td>
-                                    <span class="stock-badge {{ $item[4] }}">
-                                        {{ ucfirst($item[4]) }}
+                                    <span class="stock-badge {{ $item->kondisi }}">
+                                        {{ ucfirst($item->kondisi) }}
                                     </span>
                                 </td>
                                 <td>
                                     <div class="stock-progress-wrap">
                                         <div class="stock-progress">
                                             <div class="stock-progress-bar"
-                                                style="width:{{ $item[5] }}%; background:{{ $item[4] === 'kritis' ? '#ef4444' : '#f97316' }}">
+                                                style="width:{{ $item->progress }}%; background:{{ $item->kondisi === 'kritis' ? '#ef4444' : ($item->kondisi === 'rendah' ? '#f97316' : '#22c55e') }}">
                                             </div>
                                         </div>
-                                        <div style="font-size:.65rem; color:var(--sppg-text-muted); margin-top:2px">{{ $item[5] }}%</div>
+                                        <div style="font-size:.65rem; color:var(--sppg-text-muted); margin-top:2px">{{ $item->progress }}%</div>
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="bi bi-check-circle text-success me-1"></i> Tidak ada bahan dengan stok kritis saat ini.
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -506,29 +508,22 @@
                 </div>
                 <div class="panel-body d-flex flex-column align-items-center">
 
-                    {{-- Bootstrap-only bar chart demo --}}
                     <div class="w-100">
-                        @php
-                        $chartDays = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
-                        $chartVals = [1100, 1350, 980, 1420, 1280, 890, 1180];
-                        $chartMax  = max($chartVals);
-                        @endphp
-
                         <div class="d-flex align-items-flex-end gap-2 justify-content-between" style="height:160px; padding: 0 4px;">
                             @foreach($chartVals as $i => $val)
-                            @php $pct = round($val / $chartMax * 100); @endphp
+                            @php $pct = $chartMax > 0 ? round($val / $chartMax * 100) : 0; @endphp
                             <div class="d-flex flex-column align-items-center gap-1" style="flex:1">
                                 <div style="font-size:.62rem; color:var(--sppg-text-muted); font-weight:600">{{ number_format($val) }}</div>
                                 <div style="flex:1; display:flex; align-items:flex-end; width:100%">
                                     <div style="
                                         width:100%;
-                                        height:{{ $pct }}%;
+                                        height:{{ max(8, $pct) }}%;
                                         min-height:8px;
-                                        background: {{ $i === 6 ? 'var(--sppg-primary)' : 'linear-gradient(180deg, #22a05a, var(--sppg-primary))' }};
+                                        background: {{ $i === (count($chartVals) - 1) ? 'var(--sppg-primary)' : 'linear-gradient(180deg, #22a05a, var(--sppg-primary))' }};
                                         border-radius:5px 5px 0 0;
-                                        opacity: {{ $i === 6 ? '1' : '.75' }};
+                                        opacity: {{ $i === (count($chartVals) - 1) ? '1' : '.75' }};
                                         transition: opacity .3s;
-                                    " title="{{ $chartDays[$i] }}: {{ $val }} porsi"></div>
+                                    " title="{{ $chartDays[$i] }}: {{ number_format($val) }} porsi"></div>
                                 </div>
                                 <div style="font-size:.68rem; color:var(--sppg-text-muted); font-weight:600">{{ $chartDays[$i] }}</div>
                             </div>
@@ -542,19 +537,19 @@
                     <div class="row g-2 w-100">
                         <div class="col-4 text-center">
                             <div style="font-size:1.05rem; font-weight:800; color:var(--sppg-primary)">
-                                {{ number_format(array_sum($chartVals)) }}
+                                {{ number_format($chartTotal7Hari) }}
                             </div>
                             <div style="font-size:.68rem; color:var(--sppg-text-muted)">Total 7 Hari</div>
                         </div>
                         <div class="col-4 text-center">
                             <div style="font-size:1.05rem; font-weight:800; color:var(--sppg-accent)">
-                                {{ number_format(round(array_sum($chartVals)/7)) }}
+                                {{ number_format($chartRataRata) }}
                             </div>
                             <div style="font-size:.68rem; color:var(--sppg-text-muted)">Rata-rata</div>
                         </div>
                         <div class="col-4 text-center">
                             <div style="font-size:1.05rem; font-weight:800; color:#3b82f6">
-                                {{ number_format(max($chartVals)) }}
+                                {{ number_format($chartTertinggi) }}
                             </div>
                             <div style="font-size:.68rem; color:var(--sppg-text-muted)">Tertinggi</div>
                         </div>
@@ -583,39 +578,39 @@
                 <div class="panel-body">
                     <div class="row g-2">
                         <div class="col-6">
-                            <a href="" class="quick-action-btn">
+                            <a href="{{ route('bahan-masuk.index') }}" class="quick-action-btn">
                                 <i class="bi bi-box-arrow-in-down"></i>
                                 Bahan Masuk
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="" class="quick-action-btn accent">
+                            <a href="{{ route('penggunaan-bahan.index') }}" class="quick-action-btn accent">
                                 <i class="bi bi-fire" style="color:var(--sppg-accent)"></i>
-                                Buat Produksi
+                                Penggunaan
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="" class="quick-action-btn">
+                            <a href="{{ route('sekolah.index') }}" class="quick-action-btn">
                                 <i class="bi bi-truck"></i>
                                 Distribusi
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="" class="quick-action-btn">
-                                <i class="bi bi-clipboard-check"></i>
-                                Stok Opname
+                            <a href="{{ route('supplier.index') }}" class="quick-action-btn">
+                                <i class="bi bi-shop"></i>
+                                Supplier
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="" class="quick-action-btn">
+                            <a href="{{ route('bahan-baku.create') }}" class="quick-action-btn">
                                 <i class="bi bi-plus-circle"></i>
                                 Tambah Bahan
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="" class="quick-action-btn accent">
+                            <a href="{{ route('laporan.index') }}" class="quick-action-btn accent">
                                 <i class="bi bi-file-earmark-bar-graph" style="color:var(--sppg-accent)"></i>
-                                Laporan Gizi
+                                Laporan Stok
                             </a>
                         </div>
                     </div>
@@ -631,47 +626,25 @@
                         <i class="bi bi-clock-history"></i>
                         Aktivitas Terbaru
                     </div>
-                    <a href="#" style="font-size:.72rem; color:var(--sppg-primary); text-decoration:none; font-weight:600">
+                    <a href="{{ route('bahan-baku.index') }}" style="font-size:.72rem; color:var(--sppg-primary); text-decoration:none; font-weight:600">
                         Semua
                     </a>
                 </div>
                 <div class="panel-body p-0 px-3">
                     <ul class="activity-feed">
+                        @forelse($activityFeed as $act)
                         <li>
-                            <div class="activity-dot green"><i class="bi bi-box-arrow-in-down"></i></div>
+                            <div class="activity-dot {{ $act['dot'] }}"><i class="bi {{ $act['icon'] }}"></i></div>
                             <div class="activity-content">
-                                <div class="ac-title">Bahan Masuk: Beras 500 Kg</div>
-                                <div class="ac-meta"><i class="bi bi-person me-1"></i>Ahmad Fauzi · 10 mnt lalu</div>
+                                <div class="ac-title">{{ $act['title'] }}</div>
+                                <div class="ac-meta"><i class="bi bi-info-circle me-1"></i>{{ $act['meta'] }}</div>
                             </div>
                         </li>
-                        <li>
-                            <div class="activity-dot orange"><i class="bi bi-fire"></i></div>
-                            <div class="activity-content">
-                                <div class="ac-title">Produksi Nasi Ayam — 320 Porsi</div>
-                                <div class="ac-meta"><i class="bi bi-person me-1"></i>Siti Rahayu · 35 mnt lalu</div>
-                            </div>
+                        @empty
+                        <li class="py-4 text-center text-muted">
+                            Belum ada riwayat aktivitas terbaru.
                         </li>
-                        <li>
-                            <div class="activity-dot blue"><i class="bi bi-truck"></i></div>
-                            <div class="activity-content">
-                                <div class="ac-title">Distribusi ke SDN 04 Kota</div>
-                                <div class="ac-meta"><i class="bi bi-person me-1"></i>Budi Santoso · 1 jam lalu</div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="activity-dot red"><i class="bi bi-exclamation-triangle"></i></div>
-                            <div class="activity-content">
-                                <div class="ac-title">Stok Minyak Goreng kritis!</div>
-                                <div class="ac-meta"><i class="bi bi-bell me-1"></i>Sistem · 2 jam lalu</div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="activity-dot green"><i class="bi bi-clipboard-check"></i></div>
-                            <div class="activity-content">
-                                <div class="ac-title">Stok Opname selesai dilakukan</div>
-                                <div class="ac-meta"><i class="bi bi-person me-1"></i>Dewi Kusuma · 3 jam lalu</div>
-                            </div>
-                        </li>
+                        @endforelse
                     </ul>
                 </div>
             </div>
@@ -686,42 +659,39 @@
                         Sekolah Penerima Hari Ini
                     </div>
                     <span class="badge" style="background:var(--sppg-primary-lt); color:var(--sppg-primary); font-size:.7rem; font-weight:600; padding:4px 10px; border-radius:20px">
-                        47 Sekolah
+                        {{ $totalSekolah }} Sekolah
                     </span>
                 </div>
                 <div class="panel-body p-0 px-3">
-                    @php
-                    $sekolahList = [
-                        ['SDN 01 Kota Medan', 'Medan Kota', 250, true],
-                        ['SDN 05 Helvetia', 'Medan Helvetia', 185, true],
-                        ['MI Nurul Huda', 'Medan Sunggal', 120, true],
-                        ['SDN 03 Amplas', 'Medan Amplas', 210, false],
-                        ['SDN 12 Selayang', 'Medan Selayang', 165, true],
-                        ['MIN 1 Medan', 'Medan Denai', 230, false],
-                    ];
-                    @endphp
-
-                    @foreach($sekolahList as $s)
+                    @forelse($sekolahList as $s)
                     <div class="sekolah-item">
-                        <div class="sekolah-avatar">{{ strtoupper(substr($s[0], 0, 2)) }}</div>
+                        <div class="sekolah-avatar">{{ strtoupper(substr($s->nama_sekolah, 0, 2)) }}</div>
                         <div style="flex:1; min-width:0">
-                            <div class="sekolah-name text-truncate">{{ $s[0] }}</div>
-                            <div class="sekolah-detail">{{ $s[1] }} · {{ $s[2] }} porsi</div>
+                            <div class="sekolah-name text-truncate">{{ $s->nama_sekolah }}</div>
+                            <div class="sekolah-detail">{{ $s->kecamatan ?? $s->jenjang }} · {{ number_format($s->porsi) }} porsi</div>
                         </div>
-                        @if($s[3])
+                        @if($s->status_distribusi === 'terkirim')
                             <span style="font-size:.65rem; font-weight:600; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; white-space:nowrap">
                                 <i class="bi bi-check2"></i> Terkirim
                             </span>
-                        @else
+                        @elseif($s->status_distribusi === 'proses')
                             <span style="font-size:.65rem; font-weight:600; background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:20px; white-space:nowrap">
                                 <i class="bi bi-clock"></i> Proses
                             </span>
+                        @else
+                            <span style="font-size:.65rem; font-weight:600; background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:20px; white-space:nowrap">
+                                <i class="bi bi-hourglass-split"></i> Menunggu
+                            </span>
                         @endif
                     </div>
-                    @endforeach
+                    @empty
+                    <div class="text-center py-4 text-muted">
+                        Belum ada data sekolah penerima.
+                    </div>
+                    @endforelse
 
                     <div class="text-center pt-3 pb-1">
-                        <a href=""
+                        <a href="{{ route('sekolah.index') }}"
                         style="font-size:.75rem; color:var(--sppg-primary); font-weight:600; text-decoration:none">
                             Lihat Jadwal Lengkap <i class="bi bi-arrow-right"></i>
                         </a>
