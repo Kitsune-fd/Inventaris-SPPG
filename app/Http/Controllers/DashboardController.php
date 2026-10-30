@@ -3,158 +3,147 @@
 namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
-use App\Models\Kategori;
-use App\Models\Supplier;
+use App\Models\BahanMasuk;
+use App\Models\PenggunaanBahan;
 use App\Models\SekolahPenerima;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display dashboard summary.
      */
     public function index()
     {
-        // 1. STAT CARDS
+        $today = Carbon::today();
+
+        // 1. STAT CARDS: AKTIVITAS STOK HARI INI & STATUS
+        $transaksiMasukHariIni = BahanMasuk::whereDate('tanggal_masuk', $today)->count();
+        $totalQtyMasukHariIni = BahanMasuk::whereDate('tanggal_masuk', $today)->sum('jumlah');
+
+        $transaksiPakaiHariIni = PenggunaanBahan::whereDate('tanggal_penggunaan', $today)->count();
+        $totalQtyPakaiHariIni = PenggunaanBahan::whereDate('tanggal_penggunaan', $today)->sum('jumlah');
+
         $totalBahanBaku = BahanBaku::count();
-        $bahanBakuBulanIni = BahanBaku::whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->count();
         $totalBahanTersedia = BahanBaku::where('stok', '>', 0)->count();
+        $totalBahanKritis = BahanBaku::where('stok', '<=', 0)->count();
 
         $totalSekolah = SekolahPenerima::count();
         $totalSekolahAktif = SekolahPenerima::where('status', 'aktif')->count();
 
-        $totalPorsiTarget = SekolahPenerima::where('status', 'aktif')->sum('porsi');
-        if ($totalPorsiTarget == 0) {
-            $totalPorsiTarget = 1280;
-        }
-
-        $porsiTerkirim = SekolahPenerima::where('status', 'aktif')
-            ->where('status_distribusi', 'terkirim')
-            ->sum('porsi');
-        $persenPorsiTerkirim = $totalPorsiTarget > 0 ? round(($porsiTerkirim / $totalPorsiTarget) * 100) : 0;
-
-        $totalBahanKritis = BahanBaku::where(function ($q) {
-            $q->whereColumn('stok', '<=', 'stok_minimum')
-              ->orWhere('status', 'habis');
-        })->count();
-
-        // 2. STOK HAMPIR HABIS / MEMERLUKAN PERHATIAN
+        // 2. PEMANTAUAN STOK TERENDAH / HABIS (Untuk persiapan esok hari)
         $stokHampirHabis = BahanBaku::with('kategori')
-            ->select('*')
-            ->selectRaw('CASE WHEN stok_minimum > 0 THEN (stok / stok_minimum) ELSE 999 END as rasio')
-            ->orderBy('rasio', 'asc')
+            ->orderBy('stok', 'asc')
             ->take(7)
             ->get()
             ->map(function ($item) {
                 $kondisi = 'normal';
-                if ($item->stok <= $item->stok_minimum || $item->status === 'habis') {
+                if ($item->stok <= 0) {
                     $kondisi = 'kritis';
-                } elseif ($item->stok <= ($item->stok_minimum * 1.5)) {
+                } elseif ($item->stok <= 10) {
                     $kondisi = 'rendah';
                 }
 
-                $maxRef = max($item->stok_minimum * 2, 1);
-                $persen = round(min(100, max(5, ($item->stok / $maxRef) * 100)));
+                $persen = $item->stok > 0 ? min(100, max(10, round(($item->stok / 50) * 100))) : 0;
 
                 return (object) [
+                    'id' => $item->id,
                     'nama' => $item->nama_bahan,
                     'kategori' => $item->kategori->nama_kategori ?? 'Umum',
-                    'stok' => number_format($item->stok, 0, ',', '.') . ' ' . $item->satuan,
-                    'min_stok' => number_format($item->stok_minimum, 0, ',', '.') . ' ' . $item->satuan,
+                    'stok' => number_format($item->stok, 2, ',', '.') . ' ' . $item->satuan,
                     'kondisi' => $kondisi,
                     'progress' => $persen,
                 ];
             });
 
-        // 3. GRAFIK PRODUKSI / DISTRIBUSI 7 HARI TERAKHIR
+        // 3. GRAFIK MUTASI STOK 7 HARI TERAKHIR (OPSI A: Bahan Masuk vs Penggunaan Bahan)
         $chartDays = [];
-        $chartVals = [];
+        $chartMasuk = [];
+        $chartPakai = [];
+
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $dayName = $date->translatedFormat('D');
-            
-            // Hitung nilai produksi porsi per hari secara dinamis
-            if ($date->isSunday()) {
-                $val = 0; // Hari libur / tidak ada distribusi sekolah
-            } else {
-                $factor = 0.85 + (($date->day % 4) * 0.05);
-                $val = (int) round($totalPorsiTarget * $factor);
-            }
-            $chartDays[] = $dayName;
-            $chartVals[] = $val;
+            $chartDays[] = $date->translatedFormat('D');
+
+            $masukQty = (float) BahanMasuk::whereDate('tanggal_masuk', $date->toDateString())->sum('jumlah');
+            $pakaiQty = (float) PenggunaanBahan::whereDate('tanggal_penggunaan', $date->toDateString())->sum('jumlah');
+
+            $chartMasuk[] = $masukQty;
+            $chartPakai[] = $pakaiQty;
         }
 
-        $chartMax = max(array_merge([1], $chartVals));
-        $chartTotal7Hari = array_sum($chartVals);
-        $chartHariAktif = count(array_filter($chartVals));
-        $chartRataRata = $chartHariAktif > 0 ? round($chartTotal7Hari / $chartHariAktif) : 0;
-        $chartTertinggi = max($chartVals);
+        $maxVal = max(array_merge([1], $chartMasuk, $chartPakai));
+        $totalMasuk7Hari = array_sum($chartMasuk);
+        $totalPakai7Hari = array_sum($chartPakai);
 
         // 4. SEKOLAH PENERIMA HARI INI
         $sekolahList = SekolahPenerima::where('status', 'aktif')->take(6)->get();
 
         // 5. AKTIVITAS TERBARU
         $activityFeed = [];
-        
-        // Ambil bahan yang kritis
-        $criticalItems = BahanBaku::whereColumn('stok', '<=', 'stok_minimum')->take(2)->get();
-        foreach ($criticalItems as $crit) {
+
+        // Peringatan Bahan Habis
+        $habisItems = BahanBaku::where('stok', '<=', 0)->take(2)->get();
+        foreach ($habisItems as $h) {
             $activityFeed[] = [
                 'dot' => 'red',
                 'icon' => 'bi-exclamation-triangle',
-                'title' => "Stok {$crit->nama_bahan} kritis ({$crit->stok} {$crit->satuan})!",
-                'meta' => 'Sistem Otomatis · Peringatan Stok',
-                'time' => $crit->updated_at,
+                'title' => "Stok {$h->nama_bahan} kosong (0 {$h->satuan})!",
+                'meta' => 'Peringatan Stok · Perlu dicatat bahan masuk',
+                'time' => $h->updated_at,
             ];
         }
 
-        // Ambil bahan baru
-        $recentBahan = BahanBaku::with('kategori')->latest()->take(2)->get();
-        foreach ($recentBahan as $bhn) {
+        // Penerimaan Bahan Masuk Terbaru
+        $recentMasuk = BahanMasuk::with('bahanBaku')->latest('id')->take(3)->get();
+        foreach ($recentMasuk as $bm) {
             $activityFeed[] = [
                 'dot' => 'green',
                 'icon' => 'bi-box-arrow-in-down',
-                'title' => "Bahan Terdaftar: {$bhn->nama_bahan} ({$bhn->stok} {$bhn->satuan})",
-                'meta' => "Kategori: " . ($bhn->kategori->nama_kategori ?? 'Umum') . " · " . $bhn->created_at->diffForHumans(),
-                'time' => $bhn->created_at,
+                'title' => "Bahan Masuk: {$bm->bahanBaku->nama_bahan} (+{$bm->jumlah} {$bm->bahanBaku->satuan})",
+                'meta' => "Penerimaan · " . ($bm->keterangan ?: 'Stok bertambah'),
+                'time' => $bm->created_at,
             ];
         }
 
-        // Ambil sekolah terkirim
-        $sekolahTerkirim = SekolahPenerima::where('status_distribusi', 'terkirim')->take(2)->get();
-        foreach ($sekolahTerkirim as $sek) {
+        // Penggunaan Bahan Terbaru
+        $recentPakai = PenggunaanBahan::with(['bahanBaku', 'sekolah'])->latest('id')->take(3)->get();
+        foreach ($recentPakai as $pb) {
+            $tujuan = $pb->sekolah->nama_sekolah ?? $pb->keperluan ?? 'Dapur';
             $activityFeed[] = [
                 'dot' => 'blue',
-                'icon' => 'bi-truck',
-                'title' => "Distribusi ke {$sek->nama_sekolah}",
-                'meta' => "Wilayah: {$sek->kecamatan} · {$sek->porsi} porsi",
-                'time' => $sek->updated_at,
+                'icon' => 'bi-box-arrow-up',
+                'title' => "Penggunaan: {$pb->bahanBaku->nama_bahan} (-{$pb->jumlah} {$pb->bahanBaku->satuan})",
+                'meta' => "Tujuan: {$tujuan}",
+                'time' => $pb->created_at,
             ];
         }
 
-        $activityFeed = array_slice($activityFeed, 0, 5);
+        // Sort activity feed by time desc
+        usort($activityFeed, function ($a, $b) {
+            return ($b['time'] ?? Carbon::now()) <=> ($a['time'] ?? Carbon::now());
+        });
+
+        $activityFeed = array_slice($activityFeed, 0, 6);
 
         return view('dashboard', compact(
+            'transaksiMasukHariIni',
+            'totalQtyMasukHariIni',
+            'transaksiPakaiHariIni',
+            'totalQtyPakaiHariIni',
             'totalBahanBaku',
-            'bahanBakuBulanIni',
             'totalBahanTersedia',
+            'totalBahanKritis',
             'totalSekolah',
             'totalSekolahAktif',
-            'totalPorsiTarget',
-            'porsiTerkirim',
-            'persenPorsiTerkirim',
-            'totalBahanKritis',
             'stokHampirHabis',
             'chartDays',
-            'chartVals',
-            'chartMax',
-            'chartTotal7Hari',
-            'chartRataRata',
-            'chartTertinggi',
+            'chartMasuk',
+            'chartPakai',
+            'maxVal',
+            'totalMasuk7Hari',
+            'totalPakai7Hari',
             'sekolahList',
             'activityFeed'
         ));

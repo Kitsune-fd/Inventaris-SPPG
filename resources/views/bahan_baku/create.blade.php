@@ -3,83 +3,60 @@
 @section('title', 'Tambah Bahan Baku')
 
 @section('breadcrumb')
-    <a href="{{ route('bahan-baku.index') }}" class="text-decoration-none">
-        Bahan Baku
-    </a>
-
+    <a href="{{ route('bahan-baku.index') }}" class="text-decoration-none">Bahan Baku</a>
     <span class="mx-2">/</span>
-
-    <span class="bc-current">Tambah Bahan Baku</span>
+    <span class="bc-current">Tambah Bahan</span>
 @endsection
 
 @section('content')
-
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white py-3">
-        <h5 class="mb-0 fw-semibold">
-            Tambah Bahan Baku
-        </h5>
+        <h5 class="mb-0 fw-semibold">Tambah Katalog Bahan Baku</h5>
     </div>
 
     <div class="card-body">
-
         <form action="{{ route('bahan-baku.store') }}" method="POST">
-
             @csrf
 
             <div class="row">
-
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        Kode Bahan
+                    <label class="form-label d-flex align-items-center justify-content-between">
+                        <span>Kode Bahan <span class="text-danger">*</span></span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary small">Dibuat Otomatis</span>
                     </label>
-
                     <input
                         type="text"
                         name="kode_bahan"
-                        class="form-control @error('kode_bahan') is-invalid @enderror"
-                        value="{{ old('kode_bahan') }}"
-                        placeholder="Masukkan kode bahan">
-
+                        class="form-control font-monospace bg-light @error('kode_bahan') is-invalid @enderror"
+                        value="{{ old('kode_bahan', $kodeBahan) }}"
+                        readonly
+                        required>
                     @error('kode_bahan')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        Nama Bahan
-                    </label>
-
+                    <label class="form-label">Nama Bahan <span class="text-danger">*</span></label>
                     <input
                         type="text"
                         name="nama_bahan"
                         class="form-control @error('nama_bahan') is-invalid @enderror"
                         value="{{ old('nama_bahan') }}"
-                        placeholder="Masukkan nama bahan">
-
+                        placeholder="Contoh: Beras Premium / Telur Ayam"
+                        required autofocus>
                     @error('nama_bahan')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        Kategori
-                    </label>
-
+                    <label class="form-label">Kategori <span class="text-danger">*</span></label>
                     <select
                         name="kategori_id"
-                        class="form-select @error('kategori_id') is-invalid @enderror">
-
-                        <option value="">
-                            -- Pilih Kategori --
-                        </option>
-
+                        class="form-select @error('kategori_id') is-invalid @enderror"
+                        required>
+                        <option value="">-- Pilih Kategori --</option>
                         @foreach ($kategori as $item)
                             <option
                                 value="{{ $item->id }}"
@@ -87,211 +64,53 @@
                                 {{ $item->nama_kategori }}
                             </option>
                         @endforeach
-
                     </select>
-
                     @error('kategori_id')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        Supplier
-                    </label>
-
-                    <select
-                        name="supplier_id"
-                        class="form-select @error('supplier_id') is-invalid @enderror">
-
-                        <option value="">
-                            -- Pilih Supplier --
-                        </option>
-
-                        @foreach ($supplier as $item)
-                            <option
-                                value="{{ $item->id }}"
-                                {{ old('supplier_id') == $item->id ? 'selected' : '' }}>
-                                {{ $item->nama_supplier }}
-                            </option>
-                        @endforeach
-
-                    </select>
-
-                    @error('supplier_id')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">
-                        Stok
-                    </label>
-
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="stok"
-                        class="form-control @error('stok') is-invalid @enderror"
-                        value="{{ old('stok') }}"
-                        placeholder="0">
-
-                    @error('stok')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">
-                        Stok Minimum
-                    </label>
-
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="stok_minimum"
-                        class="form-control @error('stok_minimum') is-invalid @enderror"
-                        value="{{ old('stok_minimum') }}"
-                        placeholder="0">
-
-                    @error('stok_minimum')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">
-                        Satuan
-                    </label>
-
+                    <label class="form-label">Satuan Ukur <span class="text-danger">*</span></label>
                     <input
                         type="text"
                         name="satuan"
                         class="form-control @error('satuan') is-invalid @enderror"
                         value="{{ old('satuan') }}"
-                        placeholder="Kg / Liter / Tray">
-
+                        placeholder="Contoh: Kg / Liter / Tray / Ikat / Butir"
+                        required>
                     @error('satuan')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        Harga
-                    </label>
-
-                    <input
-                        type="number"
-                        name="harga"
-                        class="form-control @error('harga') is-invalid @enderror"
-                        value="{{ old('harga') }}"
-                        placeholder="Masukkan harga">
-
-                    @error('harga')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        Tanggal Expired
-                    </label>
-
-                    <input
-                        type="date"
-                        name="tanggal_expired"
-                        class="form-control @error('tanggal_expired') is-invalid @enderror"
-                        value="{{ old('tanggal_expired') }}">
-
-                    @error('tanggal_expired')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        Status
-                    </label>
-
-                    <select
-                        name="status"
-                        class="form-select @error('status') is-invalid @enderror">
-
-                        <option value="">
-                            -- Pilih Status --
-                        </option>
-
-                        <option value="tersedia"
-                            {{ old('status') == 'tersedia' ? 'selected' : '' }}>
-                            Tersedia
-                        </option>
-
-                        <option value="habis"
-                            {{ old('status') == 'habis' ? 'selected' : '' }}>
-                            Habis
-                        </option>
-
-                    </select>
-
-                    @error('status')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="col-md-12 mb-3">
-                    <label class="form-label">
-                        Deskripsi
-                    </label>
-
+                    <label class="form-label">Deskripsi / Catatan Tambahan</label>
                     <textarea
                         name="deskripsi"
-                        rows="4"
+                        rows="3"
                         class="form-control @error('deskripsi') is-invalid @enderror"
-                        placeholder="Masukkan deskripsi bahan">{{ old('deskripsi') }}</textarea>
-
+                        placeholder="Catatan spesifikasi atau penanganan bahan...">{{ old('deskripsi') }}</textarea>
                     @error('deskripsi')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+            </div>
 
+            <div class="alert alert-info py-2 small d-flex align-items-center">
+                <i class="bi bi-info-circle-fill fs-5 me-2"></i>
+                <span>Jumlah stok bahan akan otomatis bertambah saat Anda mencatat transaksi pada menu <strong>Bahan Masuk</strong>.</span>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-3">
-
-                <a href="{{ route('bahan-baku.index') }}"
-                    class="btn btn-light border">
+                <a href="{{ route('bahan-baku.index') }}" class="btn btn-outline-secondary">
                     Kembali
                 </a>
-
                 <button type="submit" class="btn btn-success">
-                    <i class="bi bi-save me-1"></i>
-                    Simpan Data
+                    <i class="bi bi-save me-1"></i> Simpan Bahan
                 </button>
-
             </div>
-
         </form>
-
     </div>
 </div>
-
 @endsection

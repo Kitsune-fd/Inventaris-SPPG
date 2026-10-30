@@ -22,29 +22,42 @@ class BahanBaku extends Model
     }
 
     /**
-     * Relasi ke Supplier Bahan Baku.
+     * Relasi riwayat bahan masuk.
      */
-    public function supplier()
+    public function bahanMasuk()
     {
-        return $this->belongsTo(Supplier::class, 'supplier_id');
+        return $this->hasMany(BahanMasuk::class, 'bahan_baku_id');
     }
 
     /**
-     * Scope untuk bahan baku dengan stok kritis / menipis.
+     * Relasi riwayat penggunaan bahan.
      */
-    public function scopeKritis(Builder $query): Builder
+    public function penggunaanBahan()
     {
-        return $query->where(function ($q) {
-            $q->whereColumn('stok', '<=', 'stok_minimum')
-              ->orWhere('status', 'habis');
-        });
+        return $this->hasMany(PenggunaanBahan::class, 'bahan_baku_id');
     }
 
     /**
-     * Scope untuk bahan baku yang masih tersedia.
+     * Scope untuk bahan baku yang masih tersedia (stok > 0).
      */
     public function scopeTersedia(Builder $query): Builder
     {
-        return $query->where('status', 'tersedia')->where('stok', '>', 0);
+        return $query->where('stok', '>', 0);
+    }
+
+    /**
+     * Scope untuk bahan baku yang habis (stok <= 0).
+     */
+    public function scopeHabis(Builder $query): Builder
+    {
+        return $query->where('stok', '<=', 0);
+    }
+
+    /**
+     * Accessor status ketersediaan stok.
+     */
+    public function getStatusAttribute(): string
+    {
+        return $this->stok > 0 ? 'tersedia' : 'habis';
     }
 }

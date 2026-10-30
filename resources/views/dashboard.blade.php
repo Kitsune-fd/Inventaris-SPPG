@@ -366,56 +366,69 @@
     {{-- =============================================
         STAT CARDS
     ============================================= --}}
+    {{-- =============================================
+        STAT CARDS (Aktivitas Stok Hari Ini & Status)
+    ============================================= --}}
     <div class="row g-3 mb-4">
 
+        {{-- Bahan Masuk Hari Ini --}}
         <div class="col-6 col-xl-3">
             <div class="stat-card sc-green">
-                <div class="stat-icon si-green"><i class="bi bi-boxes"></i></div>
+                <div class="stat-icon si-green"><i class="bi bi-box-arrow-in-down"></i></div>
                 <div class="stat-body">
-                    <div class="stat-value">{{ number_format($totalBahanBaku) }}</div>
-                    <div class="stat-label">Total Bahan Baku</div>
-                    @if($bahanBakuBulanIni > 0)
-                        <span class="stat-badge up"><i class="bi bi-arrow-up-short"></i>+{{ $bahanBakuBulanIni }} baru bulan ini</span>
+                    <div class="stat-value text-success">+{{ number_format($totalQtyMasukHariIni, 1, ',', '.') }}</div>
+                    <div class="stat-label">Bahan Masuk Hari Ini</div>
+                    <span class="stat-badge up">
+                        <i class="bi bi-clock-history"></i>{{ $transaksiMasukHariIni }} transaksi tercatat
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Bahan Digunakan Hari Ini --}}
+        <div class="col-6 col-xl-3">
+            <div class="stat-card sc-blue">
+                <div class="stat-icon si-blue"><i class="bi bi-box-arrow-up"></i></div>
+                <div class="stat-body">
+                    <div class="stat-value text-primary">-{{ number_format($totalQtyPakaiHariIni, 1, ',', '.') }}</div>
+                    <div class="stat-label">Bahan Digunakan Hari Ini</div>
+                    <span class="stat-badge {{ $transaksiPakaiHariIni > 0 ? 'up' : 'neu' }}">
+                        <i class="bi bi-fire"></i>{{ $transaksiPakaiHariIni }} sesi masak/distribusi
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Bahan Habis / Kritis --}}
+        <div class="col-6 col-xl-3">
+            <div class="stat-card {{ $totalBahanKritis > 0 ? 'sc-purple' : 'sc-green' }}">
+                <div class="stat-icon {{ $totalBahanKritis > 0 ? 'si-purple' : 'si-green' }}">
+                    <i class="bi {{ $totalBahanKritis > 0 ? 'bi-exclamation-triangle' : 'bi-check2-circle' }}"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-value" style="{{ $totalBahanKritis > 0 ? 'color:#dc2626' : '#15803d' }}">
+                        {{ number_format($totalBahanKritis) }}
+                    </div>
+                    <div class="stat-label">Bahan Kosong / Habis</div>
+                    @if($totalBahanKritis > 0)
+                        <span class="stat-badge down"><i class="bi bi-exclamation-circle"></i>Perlu Penerimaan</span>
                     @else
-                        <span class="stat-badge neu"><i class="bi bi-check2"></i>{{ $totalBahanTersedia }} item tersedia</span>
+                        <span class="stat-badge up"><i class="bi bi-check-circle"></i>{{ $totalBahanTersedia }} Bahan Aman</span>
                     @endif
                 </div>
             </div>
         </div>
 
+        {{-- Sekolah Penerima --}}
         <div class="col-6 col-xl-3">
             <div class="stat-card sc-orange">
                 <div class="stat-icon si-orange"><i class="bi bi-building"></i></div>
                 <div class="stat-body">
-                    <div class="stat-value">{{ number_format($totalSekolah) }}</div>
-                    <div class="stat-label">Total Sekolah</div>
-                    <span class="stat-badge neu"><i class="bi bi-building-check"></i>{{ $totalSekolahAktif }} aktif terdaftar</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6 col-xl-3">
-            <div class="stat-card sc-blue">
-                <div class="stat-icon si-blue"><i class="bi bi-fire"></i></div>
-                <div class="stat-body">
-                    <div class="stat-value">{{ number_format($totalPorsiTarget) }}</div>
-                    <div class="stat-label">Target Porsi Hari Ini</div>
-                    <span class="stat-badge up"><i class="bi bi-truck"></i>{{ $persenPorsiTerkirim }}% terkirim ({{ number_format($porsiTerkirim) }})</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6 col-xl-3">
-            <div class="stat-card {{ $totalBahanKritis > 0 ? 'sc-purple' : 'sc-green' }}">
-                <div class="stat-icon {{ $totalBahanKritis > 0 ? 'si-purple' : 'si-green' }}"><i class="bi bi-exclamation-triangle"></i></div>
-                <div class="stat-body">
-                    <div class="stat-value" style="{{ $totalBahanKritis > 0 ? 'color:#dc2626' : '' }}">{{ number_format($totalBahanKritis) }}</div>
-                    <div class="stat-label">Bahan Kritis / Menipis</div>
-                    @if($totalBahanKritis > 0)
-                        <span class="stat-badge down"><i class="bi bi-exclamation-circle"></i>Perlu Restock</span>
-                    @else
-                        <span class="stat-badge up"><i class="bi bi-check-circle"></i>Semua Stok Aman</span>
-                    @endif
+                    <div class="stat-value">{{ number_format($totalSekolahAktif) }}</div>
+                    <div class="stat-label">Sekolah Penerima Aktif</div>
+                    <span class="stat-badge up">
+                        <i class="bi bi-building-check"></i>Dari {{ number_format($totalSekolah) }} Terdaftar
+                    </span>
                 </div>
             </div>
         </div>
@@ -423,33 +436,32 @@
     </div>
 
     {{-- =============================================
-        ROW: STOK HAMPIR HABIS + GRAFIK
+        ROW: STOK HAMPIR HABIS + GRAFIK MUTASI (OPSI A)
     ============================================= --}}
     <div class="row g-3 mb-4">
 
-        {{-- Stok Hampir Habis --}}
-        <div class="col-12 col-xl-7">
+        {{-- Stok Bahan Hampir Habis --}}
+        <div class="col-12 col-xl-6">
             <div class="panel-card h-100">
                 <div class="panel-header">
                     <div class="panel-title">
                         <i class="bi bi-exclamation-triangle-fill text-warning"></i>
-                        Stok Bahan Hampir Habis
+                        Stok Kritis & Menipis
                     </div>
-                    <a href="{{ route('bahan-baku.index') }}" class="btn btn-sm"
+                    <a href="{{ route('stok-bahan.index') }}" class="btn btn-sm"
                     style="background:var(--sppg-primary-lt); color:var(--sppg-primary); font-size:.73rem; font-weight:600; border:none; border-radius:7px; padding:5px 12px;">
-                        Lihat Semua <i class="bi bi-arrow-right ms-1"></i>
+                        Semua Stok <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
-                <div class="p-0">
-                    <table class="table stock-table mb-0">
+                <div class="table-responsive p-0">
+                    <table class="table stock-table align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>Nama Bahan</th>
                                 <th>Kategori</th>
-                                <th>Stok</th>
-                                <th>Min. Stok</th>
-                                <th>Kondisi</th>
-                                <th>Progress</th>
+                                <th class="text-end">Stok</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Aksi Cepat</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -461,32 +473,27 @@
                                 <td>
                                     <span style="font-size:.7rem; color:var(--sppg-text-muted)">{{ $item->kategori }}</span>
                                 </td>
-                                <td>
-                                    <span style="font-weight:600; color:{{ $item->kondisi === 'kritis' ? '#b91c1c' : ($item->kondisi === 'rendah' ? '#b45309' : '#15803d') }}">
+                                <td class="text-end">
+                                    <span style="font-weight:700; color:{{ $item->kondisi === 'kritis' ? '#b91c1c' : ($item->kondisi === 'rendah' ? '#b45309' : '#15803d') }}">
                                         {{ $item->stok }}
                                     </span>
                                 </td>
-                                <td style="color:var(--sppg-text-muted)">{{ $item->min_stok }}</td>
-                                <td>
+                                <td class="text-center">
                                     <span class="stock-badge {{ $item->kondisi }}">
-                                        {{ ucfirst($item->kondisi) }}
+                                        {{ $item->kondisi === 'kritis' ? 'Habis' : ($item->kondisi === 'rendah' ? 'Menipis' : 'Aman') }}
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="stock-progress-wrap">
-                                        <div class="stock-progress">
-                                            <div class="stock-progress-bar"
-                                                style="width:{{ $item->progress }}%; background:{{ $item->kondisi === 'kritis' ? '#ef4444' : ($item->kondisi === 'rendah' ? '#f97316' : '#22c55e') }}">
-                                            </div>
-                                        </div>
-                                        <div style="font-size:.65rem; color:var(--sppg-text-muted); margin-top:2px">{{ $item->progress }}%</div>
-                                    </div>
+                                <td class="text-center">
+                                    <a href="{{ route('bahan-masuk.create', ['bahan_baku_id' => $item->id]) }}" 
+                                       class="btn btn-sm btn-outline-success py-1 px-2" style="font-size:.7rem; border-radius:6px;">
+                                        <i class="bi bi-plus-lg me-1"></i>Masuk
+                                    </a>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">
-                                    <i class="bi bi-check-circle text-success me-1"></i> Tidak ada bahan dengan stok kritis saat ini.
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-check-circle text-success me-1"></i> Semua bahan berada dalam stok yang cukup.
                                 </td>
                             </tr>
                             @endforelse
@@ -496,62 +503,94 @@
             </div>
         </div>
 
-        {{-- Grafik Produksi --}}
-        <div class="col-12 col-xl-5">
+        {{-- Grafik Mutasi Stok 7 Hari Terakhir (Opsi A: Masuk vs Pakai) --}}
+        <div class="col-12 col-xl-6">
             <div class="panel-card h-100">
-                <div class="panel-header">
+                <div class="panel-header d-flex justify-content-between align-items-center">
                     <div class="panel-title">
-                        <i class="bi bi-bar-chart-line"></i>
-                        Grafik Produksi (7 Hari)
+                        <i class="bi bi-arrow-left-right text-primary"></i>
+                        Mutasi Bahan (7 Hari Terakhir)
                     </div>
-                    <span style="font-size:.7rem; color:var(--sppg-text-muted)">Porsi / Hari</span>
+                    <div class="d-flex align-items-center gap-2" style="font-size:.7rem;">
+                        <span class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:10px; height:10px; background:#22c55e; border-radius:2px;"></span> Masuk
+                        </span>
+                        <span class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:10px; height:10px; background:#3b82f6; border-radius:2px;"></span> Dipakai
+                        </span>
+                    </div>
                 </div>
                 <div class="panel-body d-flex flex-column align-items-center">
 
                     <div class="w-100">
-                        <div class="d-flex align-items-flex-end gap-2 justify-content-between" style="height:160px; padding: 0 4px;">
-                            @foreach($chartVals as $i => $val)
-                            @php $pct = $chartMax > 0 ? round($val / $chartMax * 100) : 0; @endphp
-                            <div class="d-flex flex-column align-items-center gap-1" style="flex:1">
-                                <div style="font-size:.62rem; color:var(--sppg-text-muted); font-weight:600">{{ number_format($val) }}</div>
-                                <div style="flex:1; display:flex; align-items:flex-end; width:100%">
-                                    <div style="
-                                        width:100%;
-                                        height:{{ max(8, $pct) }}%;
-                                        min-height:8px;
-                                        background: {{ $i === (count($chartVals) - 1) ? 'var(--sppg-primary)' : 'linear-gradient(180deg, #22a05a, var(--sppg-primary))' }};
-                                        border-radius:5px 5px 0 0;
-                                        opacity: {{ $i === (count($chartVals) - 1) ? '1' : '.75' }};
-                                        transition: opacity .3s;
-                                    " title="{{ $chartDays[$i] }}: {{ number_format($val) }} porsi"></div>
+                        <div class="d-flex align-items-flex-end gap-2 justify-content-between" style="height:170px; padding: 0 4px;">
+                            @foreach($chartDays as $i => $day)
+                            @php 
+                                $pctMasuk = $maxVal > 0 ? round(($chartMasuk[$i] / $maxVal) * 100) : 0;
+                                $pctPakai = $maxVal > 0 ? round(($chartPakai[$i] / $maxVal) * 100) : 0;
+                            @endphp
+                            <div class="d-flex flex-column align-items-center gap-1" style="flex:1;">
+                                {{-- Value on top --}}
+                                <div style="font-size:.6rem; color:var(--sppg-text-muted); font-weight:600; min-height:14px;">
+                                    @if($chartMasuk[$i] > 0 || $chartPakai[$i] > 0)
+                                        {{ round($chartMasuk[$i] + $chartPakai[$i]) }}
+                                    @endif
                                 </div>
-                                <div style="font-size:.68rem; color:var(--sppg-text-muted); font-weight:600">{{ $chartDays[$i] }}</div>
+
+                                {{-- Dual bar chart --}}
+                                <div style="flex:1; display:flex; align-items:flex-end; gap:3px; width:100%; justify-content:center;">
+                                    {{-- Bar Masuk --}}
+                                    <div style="
+                                        width:45%;
+                                        height:{{ max(6, $pctMasuk) }}%;
+                                        min-height:6px;
+                                        background:#22c55e;
+                                        border-radius:4px 4px 0 0;
+                                        transition: height .3s;
+                                    " title="{{ $day }}: Masuk {{ number_format($chartMasuk[$i], 1) }}"></div>
+
+                                    {{-- Bar Pakai --}}
+                                    <div style="
+                                        width:45%;
+                                        height:{{ max(6, $pctPakai) }}%;
+                                        min-height:6px;
+                                        background:#3b82f6;
+                                        border-radius:4px 4px 0 0;
+                                        transition: height .3s;
+                                    " title="{{ $day }}: Dipakai {{ number_format($chartPakai[$i], 1) }}"></div>
+                                </div>
+
+                                {{-- Day Label --}}
+                                <div style="font-size:.68rem; color:var(--sppg-text-muted); font-weight:600; margin-top:2px;">
+                                    {{ $day }}
+                                </div>
                             </div>
                             @endforeach
                         </div>
 
-                        <hr style="border-color:var(--sppg-border); margin: 14px 0 10px">
+                        <hr style="border-color:var(--sppg-border); margin: 12px 0 10px">
                     </div>
 
-                    {{-- Legend / stats --}}
+                    {{-- Summary 7 Days --}}
                     <div class="row g-2 w-100">
                         <div class="col-4 text-center">
-                            <div style="font-size:1.05rem; font-weight:800; color:var(--sppg-primary)">
-                                {{ number_format($chartTotal7Hari) }}
+                            <div style="font-size:1.05rem; font-weight:800; color:#16a34a">
+                                +{{ number_format($totalMasuk7Hari, 1, ',', '.') }}
                             </div>
-                            <div style="font-size:.68rem; color:var(--sppg-text-muted)">Total 7 Hari</div>
+                            <div style="font-size:.68rem; color:var(--sppg-text-muted)">Total Masuk (7H)</div>
                         </div>
                         <div class="col-4 text-center">
-                            <div style="font-size:1.05rem; font-weight:800; color:var(--sppg-accent)">
-                                {{ number_format($chartRataRata) }}
+                            <div style="font-size:1.05rem; font-weight:800; color:#2563eb">
+                                -{{ number_format($totalPakai7Hari, 1, ',', '.') }}
                             </div>
-                            <div style="font-size:.68rem; color:var(--sppg-text-muted)">Rata-rata</div>
+                            <div style="font-size:.68rem; color:var(--sppg-text-muted)">Total Dipakai (7H)</div>
                         </div>
                         <div class="col-4 text-center">
-                            <div style="font-size:1.05rem; font-weight:800; color:#3b82f6">
-                                {{ number_format($chartTertinggi) }}
+                            @php $net = $totalMasuk7Hari - $totalPakai7Hari; @endphp
+                            <div style="font-size:1.05rem; font-weight:800; color:{{ $net >= 0 ? 'var(--sppg-primary)' : '#dc2626' }}">
+                                {{ $net >= 0 ? '+' : '' }}{{ number_format($net, 1, ',', '.') }}
                             </div>
-                            <div style="font-size:.68rem; color:var(--sppg-text-muted)">Tertinggi</div>
+                            <div style="font-size:.68rem; color:var(--sppg-text-muted)">Selisih Mutasi</div>
                         </div>
                     </div>
 
@@ -591,14 +630,14 @@
                         </div>
                         <div class="col-6">
                             <a href="{{ route('sekolah.index') }}" class="quick-action-btn">
-                                <i class="bi bi-truck"></i>
-                                Distribusi
+                                <i class="bi bi-building"></i>
+                                Sekolah
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="{{ route('supplier.index') }}" class="quick-action-btn">
-                                <i class="bi bi-shop"></i>
-                                Supplier
+                            <a href="{{ route('stok-bahan.index') }}" class="quick-action-btn">
+                                <i class="bi bi-archive"></i>
+                                Stok Bahan
                             </a>
                         </div>
                         <div class="col-6">
@@ -656,7 +695,7 @@
                 <div class="panel-header">
                     <div class="panel-title">
                         <i class="bi bi-building"></i>
-                        Sekolah Penerima Hari Ini
+                        Sekolah Penerima
                     </div>
                     <span class="badge" style="background:var(--sppg-primary-lt); color:var(--sppg-primary); font-size:.7rem; font-weight:600; padding:4px 10px; border-radius:20px">
                         {{ $totalSekolah }} Sekolah
@@ -668,19 +707,15 @@
                         <div class="sekolah-avatar">{{ strtoupper(substr($s->nama_sekolah, 0, 2)) }}</div>
                         <div style="flex:1; min-width:0">
                             <div class="sekolah-name text-truncate">{{ $s->nama_sekolah }}</div>
-                            <div class="sekolah-detail">{{ $s->kecamatan ?? $s->jenjang }} · {{ number_format($s->porsi) }} porsi</div>
+                            <div class="sekolah-detail">{{ $s->kecamatan ? $s->kecamatan . ' · ' : '' }}Jenjang {{ $s->jenjang }}</div>
                         </div>
-                        @if($s->status_distribusi === 'terkirim')
+                        @if($s->status === 'aktif')
                             <span style="font-size:.65rem; font-weight:600; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; white-space:nowrap">
-                                <i class="bi bi-check2"></i> Terkirim
-                            </span>
-                        @elseif($s->status_distribusi === 'proses')
-                            <span style="font-size:.65rem; font-weight:600; background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:20px; white-space:nowrap">
-                                <i class="bi bi-clock"></i> Proses
+                                <i class="bi bi-check-circle"></i> Aktif
                             </span>
                         @else
                             <span style="font-size:.65rem; font-weight:600; background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:20px; white-space:nowrap">
-                                <i class="bi bi-hourglass-split"></i> Menunggu
+                                <i class="bi bi-dash-circle"></i> Nonaktif
                             </span>
                         @endif
                     </div>
@@ -693,7 +728,7 @@
                     <div class="text-center pt-3 pb-1">
                         <a href="{{ route('sekolah.index') }}"
                         style="font-size:.75rem; color:var(--sppg-primary); font-weight:600; text-decoration:none">
-                            Lihat Jadwal Lengkap <i class="bi bi-arrow-right"></i>
+                            Lihat Semua Sekolah <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                 </div>

@@ -1,136 +1,128 @@
 @extends('layouts.layouts_app')
 
+@section('title', 'Bahan Masuk')
+
+@section('breadcrumb')
+    <span class="bc-current">Bahan Masuk</span>
+@endsection
+
 @section('content')
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+        <div>
+            <h5 class="mb-1 fw-semibold">Riwayat Bahan Masuk</h5>
+            <p class="text-muted small mb-0">Penerimaan pengiriman harian dan pencatatan sisa bahan yang menambah saldo stok</p>
+        </div>
 
-<div class="card">
-
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2>Data Bahan Masuk</h2>
-
-        <a href="#" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i>
-            Tambah Bahan Masuk
+        <a href="{{ route('bahan-masuk.create') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i> Catat Bahan Masuk
         </a>
     </div>
 
     <div class="card-body">
+        <form action="{{ route('bahan-masuk.index') }}" method="GET" class="mb-4">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <input type="text"
+                           name="search"
+                           class="form-control"
+                           placeholder="Cari kode transaksi atau nama bahan..."
+                           value="{{ request('search') }}">
+                </div>
 
-        <div class="row mb-3">
+                <div class="col-md-2">
+                    <input type="date"
+                           name="tanggal_dari"
+                           class="form-control"
+                           value="{{ request('tanggal_dari') }}"
+                           placeholder="Dari tanggal">
+                </div>
 
-            <div class="col-md-4">
-                <input type="text"
-                       class="form-control"
-                       placeholder="Cari bahan masuk...">
+                <div class="col-md-2">
+                    <input type="date"
+                           name="tanggal_sampai"
+                           class="form-control"
+                           value="{{ request('tanggal_sampai') }}"
+                           placeholder="Sampai tanggal">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i> Filter
+                    </button>
+                </div>
+
+                @if(request('search') || request('tanggal_dari') || request('tanggal_sampai'))
+                    <div class="col-md-2">
+                        <a href="{{ route('bahan-masuk.index') }}" class="btn btn-outline-secondary w-100">
+                            Reset
+                        </a>
+                    </div>
+                @endif
             </div>
+        </form>
 
-            <div class="col-md-2">
-                <button class="btn btn-primary">
-                    Cari
-                </button>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th width="5%" class="text-center">No</th>
+                        <th>Tanggal Masuk</th>
+                        <th>Kode Transaksi</th>
+                        <th>Bahan Baku</th>
+                        <th>Kategori</th>
+                        <th class="text-end">Jumlah Masuk</th>
+                        <th>Keterangan</th>
+                        <th width="10%" class="text-center">Aksi</th>
+                    </tr>
+                </thead>
 
+                <tbody>
+                    @forelse($bahanMasuk as $item)
+                        <tr>
+                            <td class="text-center">{{ $bahanMasuk->firstItem() ? ($bahanMasuk->firstItem() + $loop->index) : $loop->iteration }}</td>
+                            <td>{{ $item->tanggal_masuk ? $item->tanggal_masuk->format('d/m/Y') : '-' }}</td>
+                            <td><span class="badge bg-secondary font-monospace">{{ $item->kode_transaksi }}</span></td>
+                            <td class="fw-semibold">
+                                {{ $item->bahanBaku->nama_bahan ?? 'Bahan Dihapus' }}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ $item->bahanBaku->kategori->nama_kategori ?? '-' }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-success">
+                                +{{ number_format($item->jumlah, 2, ',', '.') }} {{ $item->bahanBaku->satuan ?? '' }}
+                            </td>
+                            <td class="text-muted small">
+                                {{ $item->keterangan ?: '-' }}
+                            </td>
+                            <td class="text-center">
+                                <form action="{{ route('bahan-masuk.destroy', $item->id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan bahan masuk ini? Stok bahan akan otomatis dikurangi kembali.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Hapus Catatan">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                Belum ada catatan bahan masuk. Klik "Catat Bahan Masuk" untuk menambah penerimaan stok.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-        <table class="table table-bordered table-hover">
-
-            <thead class="table-light">
-                <tr>
-                    <th>No</th>
-                    <th>Tanggal</th>
-                    <th>Kode Transaksi</th>
-                    <th>Nama Bahan</th>
-                    <th>Supplier</th>
-                    <th>Jumlah</th>
-                    <th>Satuan</th>
-                    <th>Harga</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <tr>
-                    <td>1</td>
-                    <td>01/06/2026</td>
-                    <td>BM-001</td>
-                    <td>Beras Premium</td>
-                    <td>CV Pangan Sejahtera</td>
-                    <td>100</td>
-                    <td>Kg</td>
-                    <td>Rp 15.000</td>
-                    <td>Rp 1.500.000</td>
-                    <td>
-                        👁 ✏ 🗑
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2</td>
-                    <td>02/06/2026</td>
-                    <td>BM-002</td>
-                    <td>Telur Ayam</td>
-                    <td>UD Sumber Protein</td>
-                    <td>50</td>
-                    <td>Tray</td>
-                    <td>Rp 60.000</td>
-                    <td>Rp 3.000.000</td>
-                    <td>
-                        👁 ✏ 🗑
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>3</td>
-                    <td>03/06/2026</td>
-                    <td>BM-003</td>
-                    <td>Daging Ayam</td>
-                    <td>PT Berkah Tani Nusantara</td>
-                    <td>80</td>
-                    <td>Kg</td>
-                    <td>Rp 35.000</td>
-                    <td>Rp 2.800.000</td>
-                    <td>
-                        👁 ✏ 🗑
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>4</td>
-                    <td>04/06/2026</td>
-                    <td>BM-004</td>
-                    <td>Wortel</td>
-                    <td>PT Sayur Makmur Abadi</td>
-                    <td>40</td>
-                    <td>Kg</td>
-                    <td>Rp 12.000</td>
-                    <td>Rp 480.000</td>
-                    <td>
-                        👁 ✏ 🗑
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>5</td>
-                    <td>05/06/2026</td>
-                    <td>BM-005</td>
-                    <td>Pisang</td>
-                    <td>CV Buah Segar Indonesia</td>
-                    <td>60</td>
-                    <td>Sisir</td>
-                    <td>Rp 20.000</td>
-                    <td>Rp 1.200.000</td>
-                    <td>
-                        👁 ✏ 🗑
-                    </td>
-                </tr>
-
-            </tbody>
-
-        </table>
-
+        <div class="mt-3">
+            {{ $bahanMasuk->links() }}
+        </div>
     </div>
-
 </div>
-
 @endsection

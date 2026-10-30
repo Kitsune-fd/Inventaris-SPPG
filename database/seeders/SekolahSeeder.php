@@ -19,9 +19,6 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'SD',
                 'kecamatan' => 'Medan Kota',
                 'alamat' => 'Jl. Pemuda No. 12, Medan Kota',
-                'jumlah_siswa' => 250,
-                'porsi' => 250,
-                'status_distribusi' => 'terkirim',
                 'status' => 'aktif',
             ],
             [
@@ -30,9 +27,6 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'SD',
                 'kecamatan' => 'Medan Helvetia',
                 'alamat' => 'Jl. Gaperta No. 45, Medan Helvetia',
-                'jumlah_siswa' => 185,
-                'porsi' => 185,
-                'status_distribusi' => 'terkirim',
                 'status' => 'aktif',
             ],
             [
@@ -41,9 +35,6 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'MI',
                 'kecamatan' => 'Medan Sunggal',
                 'alamat' => 'Jl. Sunggal No. 88, Medan Sunggal',
-                'jumlah_siswa' => 120,
-                'porsi' => 120,
-                'status_distribusi' => 'terkirim',
                 'status' => 'aktif',
             ],
             [
@@ -52,9 +43,6 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'SD',
                 'kecamatan' => 'Medan Amplas',
                 'alamat' => 'Jl. Panglima Denai, Medan Amplas',
-                'jumlah_siswa' => 210,
-                'porsi' => 210,
-                'status_distribusi' => 'proses',
                 'status' => 'aktif',
             ],
             [
@@ -63,9 +51,6 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'SD',
                 'kecamatan' => 'Medan Selayang',
                 'alamat' => 'Jl. Dr. Mansyur, Medan Selayang',
-                'jumlah_siswa' => 165,
-                'porsi' => 165,
-                'status_distribusi' => 'terkirim',
                 'status' => 'aktif',
             ],
             [
@@ -74,9 +59,6 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'MI',
                 'kecamatan' => 'Medan Denai',
                 'alamat' => 'Jl. Bromo No. 10, Medan Denai',
-                'jumlah_siswa' => 230,
-                'porsi' => 230,
-                'status_distribusi' => 'proses',
                 'status' => 'aktif',
             ],
             [
@@ -85,9 +67,6 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'SMP',
                 'kecamatan' => 'Medan Baru',
                 'alamat' => 'Jl. Jamin Ginting, Medan Baru',
-                'jumlah_siswa' => 310,
-                'porsi' => 310,
-                'status_distribusi' => 'proses',
                 'status' => 'aktif',
             ],
             [
@@ -96,15 +75,28 @@ class SekolahSeeder extends Seeder
                 'jenjang' => 'SD',
                 'kecamatan' => 'Medan Marelan',
                 'alamat' => 'Jl. Marelan Raya, Medan Marelan',
-                'jumlah_siswa' => 195,
-                'porsi' => 195,
-                'status_distribusi' => 'menunggu',
+                'status' => 'aktif',
+            ],
+            [
+                'npsn' => '102009',
+                'nama_sekolah' => 'SD Swasta Al-Ikhlas',
+                'jenjang' => 'SD',
+                'kecamatan' => 'Medan Johor',
+                'alamat' => 'Jl. Karya Wisata, Medan Johor',
+                'status' => 'aktif',
+            ],
+            [
+                'npsn' => '102010',
+                'nama_sekolah' => 'SDN 15 Belawan',
+                'jenjang' => 'SD',
+                'kecamatan' => 'Medan Belawan',
+                'alamat' => 'Jl. Sumatera, Medan Belawan',
                 'status' => 'aktif',
             ],
         ];
 
-        foreach ($sekolahs as $item) {
-            SekolahPenerima::updateOrCreate(['npsn' => $item['npsn']], $item);
+        foreach ($sekolahs as $data) {
+            SekolahPenerima::updateOrCreate(['npsn' => $data['npsn']], $data);
         }
     }
 }

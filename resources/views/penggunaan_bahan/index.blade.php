@@ -1,80 +1,140 @@
 @extends('layouts.layouts_app')
 
+@section('title', 'Penggunaan Bahan')
+
+@section('breadcrumb')
+    <span class="bc-current">Penggunaan Bahan</span>
+@endsection
+
 @section('content')
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+        <div>
+            <h5 class="mb-1 fw-semibold">Riwayat Penggunaan Bahan</h5>
+            <p class="text-muted small mb-0">Catatan pemakaian bahan untuk pengolahan menu dan distribusi gizi harian</p>
+        </div>
 
-<div class="card">
-
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2>Data Penggunaan Bahan</h2>
-
-        <a href="#" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i>
-            Tambah Penggunaan
+        <a href="{{ route('penggunaan-bahan.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Catat Penggunaan
         </a>
     </div>
 
     <div class="card-body">
+        <form action="{{ route('penggunaan-bahan.index') }}" method="GET" class="mb-4">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <input type="text"
+                           name="search"
+                           class="form-control"
+                           placeholder="Cari kode transaksi, bahan, atau sekolah..."
+                           value="{{ request('search') }}">
+                </div>
 
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <input type="text"
-                       class="form-control"
-                       placeholder="Cari penggunaan bahan...">
-            </div>
+                <div class="col-md-2">
+                    <input type="date"
+                           name="tanggal_dari"
+                           class="form-control"
+                           value="{{ request('tanggal_dari') }}"
+                           placeholder="Dari tanggal">
+                </div>
 
-            <div class="col-md-2">
-                <button class="btn btn-primary">
-                    Cari
-                </button>
+                <div class="col-md-2">
+                    <input type="date"
+                           name="tanggal_sampai"
+                           class="form-control"
+                           value="{{ request('tanggal_sampai') }}"
+                           placeholder="Sampai tanggal">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i> Filter
+                    </button>
+                </div>
+
+                @if(request('search') || request('tanggal_dari') || request('tanggal_sampai'))
+                    <div class="col-md-2">
+                        <a href="{{ route('penggunaan-bahan.index') }}" class="btn btn-outline-secondary w-100">
+                            Reset
+                        </a>
+                    </div>
+                @endif
             </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th width="5%" class="text-center">No</th>
+                        <th>Tanggal Penggunaan</th>
+                        <th>Kode Transaksi</th>
+                        <th>Bahan Baku</th>
+                        <th>Kategori</th>
+                        <th class="text-end">Jumlah Dipakai</th>
+                        <th>Sekolah / Keperluan</th>
+                        <th>Keterangan</th>
+                        <th width="10%" class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @forelse($penggunaanBahan as $item)
+                        <tr>
+                            <td class="text-center">{{ $penggunaanBahan->firstItem() ? ($penggunaanBahan->firstItem() + $loop->index) : $loop->iteration }}</td>
+                            <td>{{ $item->tanggal_penggunaan ? $item->tanggal_penggunaan->format('d/m/Y') : '-' }}</td>
+                            <td><span class="badge bg-secondary font-monospace">{{ $item->kode_transaksi }}</span></td>
+                            <td class="fw-semibold">
+                                {{ $item->bahanBaku->nama_bahan ?? 'Bahan Dihapus' }}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ $item->bahanBaku->kategori->nama_kategori ?? '-' }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-danger">
+                                -{{ number_format($item->jumlah, 2, ',', '.') }} {{ $item->bahanBaku->satuan ?? '' }}
+                            </td>
+                            <td>
+                                @if($item->sekolah)
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">
+                                        <i class="bi bi-building me-1"></i>{{ $item->sekolah->nama_sekolah }}
+                                    </span>
+                                @elseif($item->keperluan)
+                                    <span class="text-dark">{{ $item->keperluan }}</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="text-muted small">
+                                {{ $item->keterangan ?: '-' }}
+                            </td>
+                            <td class="text-center">
+                                <form action="{{ route('penggunaan-bahan.destroy', $item->id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan penggunaan bahan ini? Stok bahan akan otomatis dikembalikan.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Hapus Catatan">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                Belum ada catatan penggunaan bahan. Klik "Catat Penggunaan" untuk mencatat pengolahan menu harian.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-        <table class="table table-bordered table-hover">
-
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Tanggal</th>
-                    <th>Nama Bahan</th>
-                    <th>Jumlah Digunakan</th>
-                    <th>Satuan</th>
-                    <th>Tujuan</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <tr>
-                    <td>1</td>
-                    <td>30-05-2026</td>
-                    <td>Beras</td>
-                    <td>50</td>
-                    <td>Kg</td>
-                    <td>SD Negeri 01 Medan</td>
-                    <td>
-                        👁 ✏ 🗑
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2</td>
-                    <td>30-05-2026</td>
-                    <td>Telur</td>
-                    <td>100</td>
-                    <td>Butir</td>
-                    <td>SD Negeri 02 Medan</td>
-                    <td>
-                        👁 ✏ 🗑
-                    </td>
-                </tr>
-
-            </tbody>
-
-        </table>
-
+        <div class="mt-3">
+            {{ $penggunaanBahan->links() }}
+        </div>
     </div>
-
 </div>
-
 @endsection

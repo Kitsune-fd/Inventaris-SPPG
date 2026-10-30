@@ -11,4 +11,17 @@ class BahanMasuk extends Model
 
     protected $table = 'bahan_masuk';
     protected $guarded = [];
+
+    protected $casts = [
+        'tanggal_masuk' => 'date',
+        'jumlah' => 'decimal:2',
+    ];
+
+    /**
+     * Relasi ke Bahan Baku.
+     */
+    public function bahanBaku()
+    {
+        return $this->belongsTo(BahanBaku::class, 'bahan_baku_id');
+    }
 }

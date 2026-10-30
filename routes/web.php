@@ -8,19 +8,13 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PenggunaanBahanController;
 use App\Http\Controllers\SekolahPenerimaController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\StokBahanController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
 
 // Authentication Routes
@@ -35,23 +29,22 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Master Data Resources
+    // Master Data (Katalog Bahan & Sekolah)
     Route::resource('bahan-baku', BahanBakuController::class)->parameters([
         'bahan-baku' => 'bahanBaku'
     ]);
     Route::resource('kategori', KategoriController::class)->parameters([
         'kategori' => 'kategori'
     ]);
-    Route::resource('supplier', SupplierController::class)->parameters([
-        'supplier' => 'supplier'
+    Route::resource('sekolah', SekolahPenerimaController::class)->parameters([
+        'sekolah' => 'sekolah'
     ]);
-    Route::resource('sekolah', SekolahPenerimaController::class)->only(['index']);
 
     // Manajemen Stok
-    Route::get('/bahan-masuk', [BahanMasukController::class, 'index'])->name('bahan-masuk.index');
-    Route::get('/penggunaan-bahan', [PenggunaanBahanController::class, 'index'])->name('penggunaan-bahan.index');
+    Route::get('/stok-bahan', [StokBahanController::class, 'index'])->name('stok-bahan.index');
+    Route::resource('bahan-masuk', BahanMasukController::class)->only(['index', 'create', 'store', 'destroy']);
+    Route::resource('penggunaan-bahan', PenggunaanBahanController::class)->only(['index', 'create', 'store', 'destroy']);
 
-    // Laporan & Manajemen Pengguna
+    // Laporan
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('/user', [UserController::class, 'index'])->name('user.index');
 });

@@ -472,22 +472,19 @@
             <div class="nav-section-label">Master Data</div>
 
             <li class="nav-item">
-                <a href="#menuMasterData" class="nav-link {{ Request::routeIs('bahan-baku.*', 'kategori.*', 'supplier.*', 'sekolah.*') ? '' : 'collapsed' }}"
-                   data-bs-toggle="collapse" aria-expanded="{{ Request::routeIs('bahan-baku.*', 'kategori.*', 'supplier.*', 'sekolah.*') ? 'true' : 'false' }}">
+                <a href="#menuMasterData" class="nav-link {{ Request::routeIs('bahan-baku.*', 'kategori.*', 'sekolah.*') ? '' : 'collapsed' }}"
+                   data-bs-toggle="collapse" aria-expanded="{{ Request::routeIs('bahan-baku.*', 'kategori.*', 'sekolah.*') ? 'true' : 'false' }}">
                     <i class="bi bi-boxes"></i>
                     <span>Master Data</span>
                     <i class="bi bi-chevron-right chev"></i>
                 </a>
-                <div class="collapse {{ Request::routeIs('bahan-baku.*', 'kategori.*', 'supplier.*', 'sekolah.*') ? 'show' : '' }}" id="menuMasterData">
+                <div class="collapse {{ Request::routeIs('bahan-baku.*', 'kategori.*', 'sekolah.*') ? 'show' : '' }}" id="menuMasterData">
                     <ul class="sidebar-submenu">
                         <li><a href="{{route('bahan-baku.index')}}" class="nav-link {{ Request::routeIs('bahan-baku.*') ? 'active' : '' }}">
                             <span>Data Bahan Baku</span>
                         </a></li>
                         <li><a href="{{route('kategori.index')}}" class="nav-link {{ Request::routeIs('kategori.*') ? 'active' : '' }}">
                             <span>Kategori Bahan</span>
-                        </a></li>
-                        <li><a href="{{route('supplier.index')}}" class="nav-link {{ Request::routeIs('supplier.*') ? 'active' : '' }}">
-                            <span>Supplier</span>
                         </a></li>
                         <li><a href="{{route('sekolah.index')}}" class="nav-link {{ Request::routeIs('sekolah.*') ? 'active' : '' }}">
                             <span>Sekolah Penerima</span>
@@ -500,21 +497,23 @@
             <div class="nav-section-label">Manajemen Stok</div>
 
             <li class="nav-item">
-                <a href="#menuStok" class="nav-link {{ Request::routeIs('bahan-masuk.*', 'penggunaan-bahan.*') ? '' : 'collapsed' }}"
-                   data-bs-toggle="collapse" aria-expanded="{{ Request::routeIs('bahan-masuk.*', 'penggunaan-bahan.*') ? 'true' : 'false' }}">
+                <a href="#menuStok" class="nav-link {{ Request::routeIs('stok-bahan.*', 'bahan-masuk.*', 'penggunaan-bahan.*') ? '' : 'collapsed' }}"
+                   data-bs-toggle="collapse" aria-expanded="{{ Request::routeIs('stok-bahan.*', 'bahan-masuk.*', 'penggunaan-bahan.*') ? 'true' : 'false' }}">
                     <i class="bi bi-archive"></i>
                     <span>Manajemen Stok</span>
                     <i class="bi bi-chevron-right chev"></i>
                 </a>
-                <div class="collapse {{ Request::routeIs('bahan-masuk.*', 'penggunaan-bahan.*') ? 'show' : '' }}" id="menuStok">
+                <div class="collapse {{ Request::routeIs('stok-bahan.*', 'bahan-masuk.*', 'penggunaan-bahan.*') ? 'show' : '' }}" id="menuStok">
                     <ul class="sidebar-submenu">
+                        <li><a href="{{ route('stok-bahan.index') }}" class="nav-link {{ Request::routeIs('stok-bahan.*') ? 'active' : '' }}">
+                            <span>Stok Bahan</span>
+                        </a></li>
                         <li><a href="{{ route('bahan-masuk.index') }}" class="nav-link {{ Request::routeIs('bahan-masuk.*') ? 'active' : '' }}">
                             <span>Bahan Masuk</span>
                         </a></li>
                         <li><a href="{{ route('penggunaan-bahan.index') }}" class="nav-link {{ Request::routeIs('penggunaan-bahan.*') ? 'active' : '' }}">
                             <span>Penggunaan Bahan</span>
                         </a></li>
-                        
                     </ul>
                 </div>
             </li>
@@ -539,25 +538,6 @@
                 </div>
             </li>
 
-            {{-- MANAJEMEN USER --}}
-            <div class="nav-section-label">Manajemen User</div>
-
-            <li class="nav-item">
-                <a href="#menuUser" class="nav-link {{ Request::is('user-management/*') ? '' : 'collapsed' }}"
-                   data-bs-toggle="collapse" aria-expanded="{{ Request::is('user-management/*') ? 'true' : 'false' }}">
-                    <i class="bi bi-people"></i>
-                    <span>Manajemen User</span>
-                    <i class="bi bi-chevron-right chev"></i>
-                </a>
-                <div class="collapse {{ Request::is('user-management/*') ? 'show' : '' }}" id="menuUser">
-                    <ul class="sidebar-submenu">
-                        <li><a href="{{ route('user.index') }}"class="nav-link {{ Request::routeIs('user.*') ? 'active' : '' }}">
-                            <span>Data User</span>
-                        </a></li>
-                        
-                    </ul>
-                </div>
-            </li>
 
             {{-- PENGATURAN --}}
             <div class="nav-section-label">Pengaturan</div>

@@ -4,18 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
 use App\Models\Kategori;
-use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class BahanBakuController extends Controller
 {
     /**
-     * Display a listing of bahan baku.
+     * Display a listing of bahan baku (Master Catalog).
      */
     public function index(Request $request)
     {
-        $query = BahanBaku::with(['kategori', 'supplier']);
+        $query = BahanBaku::with('kategori');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -25,9 +24,42 @@ class BahanBakuController extends Controller
             });
         }
 
-        $bahanBaku = $query->latest()->paginate(10)->withQueryString();
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', $request->kategori_id);
+        }
 
-        return view('bahan_baku.index', compact('bahanBaku'));
+        $bahanBaku = $query->latest()->paginate(10)->withQueryString();
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+
+        return view('bahan_baku.index', compact('bahanBaku', 'kategoris'));
+    }
+
+    /**
+     * Generate Kode Bahan otomatis (contoh: BHN-001, BHN-002, dst).
+     */
+    protected function generateKodeBahan(): string
+    {
+        $allCodes = BahanBaku::pluck('kode_bahan')->toArray();
+        $maxNum = 0;
+
+        foreach ($allCodes as $code) {
+            if (preg_match('/^BHN-(\d+)$/i', $code, $matches)) {
+                $num = (int) $matches[1];
+                if ($num > $maxNum) {
+                    $maxNum = $num;
+                }
+            }
+        }
+
+        $next = $maxNum + 1;
+        $candidate = 'BHN-' . str_pad($next, 3, '0', STR_PAD_LEFT);
+
+        while (BahanBaku::where('kode_bahan', $candidate)->exists()) {
+            $next++;
+            $candidate = 'BHN-' . str_pad($next, 3, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 
     /**
@@ -36,9 +68,9 @@ class BahanBakuController extends Controller
     public function create()
     {
         $kategori = Kategori::orderBy('nama_kategori')->get();
-        $supplier = Supplier::orderBy('nama_supplier')->get();
+        $kodeBahan = $this->generateKodeBahan();
 
-        return view('bahan_baku.create', compact('kategori', 'supplier'));
+        return view('bahan_baku.create', compact('kategori', 'kodeBahan'));
     }
 
     /**
@@ -46,36 +78,32 @@ class BahanBakuController extends Controller
      */
     public function store(Request $request)
     {
+        // Jika kode_bahan kosong, generate otomatis
+        if (!$request->filled('kode_bahan')) {
+            $request->merge(['kode_bahan' => $this->generateKodeBahan()]);
+        }
+
         $validated = $request->validate([
             'kode_bahan' => ['required', 'string', 'max:50', 'unique:bahan_baku,kode_bahan'],
             'nama_bahan' => ['required', 'string', 'max:255'],
             'kategori_id' => ['required', 'exists:kategori,id'],
-            'supplier_id' => ['required', 'exists:supplier,id'],
-            'stok' => ['required', 'numeric', 'min:0'],
-            'stok_minimum' => ['nullable', 'numeric', 'min:0'],
             'satuan' => ['required', 'string', 'max:50'],
-            'harga' => ['required', 'numeric', 'min:0'],
-            'tanggal_expired' => ['nullable', 'date'],
-            'status' => ['required', 'in:tersedia,habis'],
             'deskripsi' => ['nullable', 'string'],
         ], [
             'kode_bahan.required' => 'Kode bahan baku wajib diisi.',
-            'kode_bahan.unique' => 'Kode bahan baku sudah digunakan.',
+            'kode_bahan.unique' => 'Kode bahan baku sudah terdaftar.',
             'nama_bahan.required' => 'Nama bahan baku wajib diisi.',
             'kategori_id.required' => 'Pilih kategori bahan baku.',
-            'supplier_id.required' => 'Pilih supplier bahan baku.',
-            'stok.required' => 'Jumlah stok wajib diisi.',
             'satuan.required' => 'Satuan bahan baku wajib diisi.',
-            'harga.required' => 'Harga bahan baku wajib diisi.',
         ]);
 
-        $validated['stok_minimum'] = $validated['stok_minimum'] ?? 0;
+        $validated['stok'] = 0; // Stok awal 0, diisi melalui menu Bahan Masuk
 
         BahanBaku::create($validated);
 
         return redirect()
             ->route('bahan-baku.index')
-            ->with('success', 'Data bahan baku berhasil ditambahkan.');
+            ->with('success', 'Bahan baku baru berhasil ditambahkan ke katalog.');
     }
 
     /**
@@ -83,7 +111,7 @@ class BahanBakuController extends Controller
      */
     public function show(BahanBaku $bahanBaku)
     {
-        $bahanBaku->load(['kategori', 'supplier']);
+        $bahanBaku->load(['kategori', 'bahanMasuk' => fn($q) => $q->latest()->take(5), 'penggunaanBahan' => fn($q) => $q->latest()->take(5)]);
 
         return view('bahan_baku.show', compact('bahanBaku'));
     }
@@ -94,9 +122,8 @@ class BahanBakuController extends Controller
     public function edit(BahanBaku $bahanBaku)
     {
         $kategori = Kategori::orderBy('nama_kategori')->get();
-        $supplier = Supplier::orderBy('nama_supplier')->get();
 
-        return view('bahan_baku.edit', compact('bahanBaku', 'kategori', 'supplier'));
+        return view('bahan_baku.edit', compact('bahanBaku', 'kategori'));
     }
 
     /**
@@ -113,26 +140,15 @@ class BahanBakuController extends Controller
             ],
             'nama_bahan' => ['required', 'string', 'max:255'],
             'kategori_id' => ['required', 'exists:kategori,id'],
-            'supplier_id' => ['required', 'exists:supplier,id'],
-            'stok' => ['required', 'numeric', 'min:0'],
-            'stok_minimum' => ['nullable', 'numeric', 'min:0'],
             'satuan' => ['required', 'string', 'max:50'],
-            'harga' => ['required', 'numeric', 'min:0'],
-            'tanggal_expired' => ['nullable', 'date'],
-            'status' => ['required', 'in:tersedia,habis'],
             'deskripsi' => ['nullable', 'string'],
         ], [
             'kode_bahan.required' => 'Kode bahan baku wajib diisi.',
-            'kode_bahan.unique' => 'Kode bahan baku sudah digunakan.',
+            'kode_bahan.unique' => 'Kode bahan baku sudah terdaftar.',
             'nama_bahan.required' => 'Nama bahan baku wajib diisi.',
             'kategori_id.required' => 'Pilih kategori bahan baku.',
-            'supplier_id.required' => 'Pilih supplier bahan baku.',
-            'stok.required' => 'Jumlah stok wajib diisi.',
             'satuan.required' => 'Satuan bahan baku wajib diisi.',
-            'harga.required' => 'Harga bahan baku wajib diisi.',
         ]);
-
-        $validated['stok_minimum'] = $validated['stok_minimum'] ?? 0;
 
         $bahanBaku->update($validated);
 
@@ -146,10 +162,16 @@ class BahanBakuController extends Controller
      */
     public function destroy(BahanBaku $bahanBaku)
     {
+        if ($bahanBaku->bahanMasuk()->exists() || $bahanBaku->penggunaanBahan()->exists()) {
+            return redirect()
+                ->route('bahan-baku.index')
+                ->with('error', 'Bahan baku tidak dapat dihapus karena memiliki riwayat transaksi bahan masuk atau penggunaan.');
+        }
+
         $bahanBaku->delete();
 
         return redirect()
             ->route('bahan-baku.index')
-            ->with('success', 'Data bahan baku berhasil dihapus.');
+            ->with('success', 'Bahan baku berhasil dihapus dari katalog.');
     }
 }

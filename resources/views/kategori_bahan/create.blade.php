@@ -20,13 +20,16 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Kode Kategori <span class="text-danger">*</span></label>
+                    <label class="form-label d-flex align-items-center justify-content-between">
+                        <span>Kode Kategori <span class="text-danger">*</span></span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary small">Dibuat Otomatis</span>
+                    </label>
                     <input
                         type="text"
                         name="kode_kategori"
-                        class="form-control @error('kode_kategori') is-invalid @enderror"
-                        value="{{ old('kode_kategori') }}"
-                        placeholder="Contoh: KTG-001"
+                        class="form-control font-monospace bg-light @error('kode_kategori') is-invalid @enderror"
+                        value="{{ old('kode_kategori', $kodeKategori) }}"
+                        readonly
                         required>
                     @error('kode_kategori')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -41,7 +44,7 @@
                         class="form-control @error('nama_kategori') is-invalid @enderror"
                         value="{{ old('nama_kategori') }}"
                         placeholder="Contoh: Karbohidrat / Protein / Sayuran"
-                        required>
+                        required autofocus>
                     @error('nama_kategori')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

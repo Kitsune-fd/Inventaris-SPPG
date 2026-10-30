@@ -29,11 +29,41 @@ class KategoriController extends Controller
     }
 
     /**
+     * Generate Kode Kategori otomatis (contoh: KTG-001, KTG-002, dst).
+     */
+    protected function generateKodeKategori(): string
+    {
+        $allCodes = Kategori::pluck('kode_kategori')->toArray();
+        $maxNum = 0;
+
+        foreach ($allCodes as $code) {
+            if (preg_match('/^KTG-(\d+)$/i', $code, $matches)) {
+                $num = (int) $matches[1];
+                if ($num > $maxNum) {
+                    $maxNum = $num;
+                }
+            }
+        }
+
+        $next = $maxNum + 1;
+        $candidate = 'KTG-' . str_pad($next, 3, '0', STR_PAD_LEFT);
+
+        while (Kategori::where('kode_kategori', $candidate)->exists()) {
+            $next++;
+            $candidate = 'KTG-' . str_pad($next, 3, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
+    }
+
+    /**
      * Show the form for creating a new kategori.
      */
     public function create()
     {
-        return view('kategori_bahan.create');
+        $kodeKategori = $this->generateKodeKategori();
+
+        return view('kategori_bahan.create', compact('kodeKategori'));
     }
 
     /**
@@ -41,6 +71,10 @@ class KategoriController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$request->filled('kode_kategori')) {
+            $request->merge(['kode_kategori' => $this->generateKodeKategori()]);
+        }
+
         $validated = $request->validate([
             'kode_kategori' => ['required', 'string', 'max:50', 'unique:kategori,kode_kategori'],
             'nama_kategori' => ['required', 'string', 'max:255'],

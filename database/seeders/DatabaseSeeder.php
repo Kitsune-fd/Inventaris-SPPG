@@ -12,19 +12,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        \App\Models\User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name' => 'admin',
+                'password' => bcrypt('123')
+            ]
+        );
 
-        \App\Models\User::factory()->create([
-            'name' => 'admin',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('123')
-        ]);
-
-        $this->call([
-            KategoriSeeder::class,
-            SupplierSeeder::class,
-            BahanBakuSeeder::class,
-            SekolahSeeder::class,
-        ]);
+        // Data dummy dinonaktifkan agar sistem siap dari kondisi awal yang bersih.
+        // Uncomment jika memerlukan data dummy pengujian di kemudian hari:
+        // $this->call([
+        //     KategoriSeeder::class,
+        //     BahanBakuSeeder::class,
+        //     SekolahSeeder::class,
+        // ]);
     }
 }
